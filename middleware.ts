@@ -12,6 +12,7 @@ export default authMiddleware({
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
   ],
+  ignoredRoutes: ["/((?!api|trpc))(_next.*|.+\.[\w]+$)", "/api/webhook/stripe"],
 });
 
 export const config = {

@@ -15,7 +15,7 @@ export async function GET() {
       where: { userId: user.id },
     });
 
-    if (userSubscription && userSubscription.stripeCustomerId) {
+    if (userSubscription?.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: userSubscription.stripeCustomerId,
         return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
@@ -30,7 +30,8 @@ export async function GET() {
       payment_method_types: ["card"],
       mode: "subscription",
       billing_address_collection: "auto",
-      customer_email: user.emailAddresses[0].emailAddress,
+      customer: userSubscription?.stripeCustomerId || undefined, // ✅ Use existing customer
+      customer_email: userSubscription ? undefined : user.emailAddresses[0].emailAddress, // ✅ Only send if no customer
       line_items: [
         {
           price_data: {

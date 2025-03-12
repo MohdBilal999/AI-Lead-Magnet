@@ -32,7 +32,21 @@ function LeadMagnetAIChatContainer({
     isLoading,
     setMessages,
   } = useChat({
-    api: "/api/openai",
+    api: "/api/gemini",
+    onResponse: async (response) => {
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let result = "";
+      while (true) {
+        const { done, value } = await reader?.read()!;
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+        setMessages((prevMessages) => [
+          ...prevMessages.slice(0, -1),
+          { ...prevMessages[prevMessages.length - 1], content: result },
+        ]);
+      }
+    },
   });
 
   useEffect(() => {
@@ -58,6 +72,12 @@ function LeadMagnetAIChatContainer({
       return;
     }
 
+    // Add the user's message to the messages state
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "assistant", content: input, id: String(prevMessages.length + 1) },
+    ]);
+
     handleOpenAIChatSubmit(e);
   };
 
@@ -73,12 +93,12 @@ function LeadMagnetAIChatContainer({
             <div
               key={idx}
               className={`flex items-end ${
-                message.role === "user" ? "justify-end" : ""
+                message.role === "assistant" ? "justify-end" : ""
               }`}
             >
               <div
                 className={`rounded-lg px-4 py-2 ${
-                  message.role === "user"
+                  message.role === "assistant"
                     ? "bg-purple-500 text-white"
                     : "bg-gray-200 text-gray-800"
                 }`}

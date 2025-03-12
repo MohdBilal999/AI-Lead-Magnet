@@ -1,25 +1,50 @@
-import { OpenAIStream, StreamingTextResponse } from "ai";
-import { Configuration, OpenAIApi } from "openai-edge";
+import OpenAI from "openai";
 
-// Create an OpenAI API client (that's edge friendly!)
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+export const runtime = "edge"; // Ensure it runs on Edge for better performance
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 });
-const openai = new OpenAIApi(config);
 
-// IMPORTANT! Set the runtime to edge
-export const runtime = "edge";
+export async function POST(req: Request) {
+  try {
+    const { messages } = await req.json();
 
-export async function POST(request: Request) {
-  const { messages } = await request.json();
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages,
+      stream: true,
+    });
 
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    stream: true,
-    messages,
-  });
+    // Convert OpenAI's async iterable response to a readable stream
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of response) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            controller.enqueue(new TextEncoder().encode(content)); // Encode and send data
+          }
+        } catch (error) {
+          console.error("Streaming Error:", error);
+          controller.error(error);
+        } finally {
+          controller.close();
+        }
+      },
+    });
 
-  const stream = OpenAIStream(response);
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+      },
+    });
 
-  return new StreamingTextResponse(stream);
+  } catch (error) {
+    console.error("Error in API:", error);
+    return new Response(
+      JSON.stringify({ error: "Internal Server Error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }

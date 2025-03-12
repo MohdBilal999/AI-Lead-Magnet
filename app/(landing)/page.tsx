@@ -1,7 +1,9 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { motion } from "framer-motion";
 import { HiMail, HiSparkles } from "react-icons/hi";
 import { IoShareSocialSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
@@ -32,13 +34,22 @@ export default LandingPage;
 const Hero = () => {
   return (
     <div className="mx-4 mb-14 mt-6 flex flex-1 flex-col items-center text-center sm:mb-12 md:mb-32 md:mt-20">
-      <h1 className="max-w-5xl text-2xl font-bold sm:text-4xl md:text-6xl">
-        Convert Content Into Customers With{" "}
+      <motion.h1
+        className="max-w-5xl text-2xl font-bold sm:text-4xl md:text-6xl"
+        initial={{ opacity: 0, x: -100 }} // Start off-screen to the left
+        animate={{ opacity: 1, x: 0 }} // Move to the center
+        transition={{
+          type: "spring",
+          stiffness: 150,
+          damping: 5,
+          duration: 1.2,
+        }} // Bouncy spring effect
+      >
+        Unleash the Power of Your Content With{" "}
         <span className="bg-gradient-to-r from-red-400 to-purple-600 bg-clip-text text-transparent">
-          {" "}
-          AI Lead Magnets{" "}
+          AI Lead Magnets
         </span>
-      </h1>
+      </motion.h1>
 
       <p className="sm:text-md mt-5 max-w-2xl text-sm text-gray-600  md:text-xl">
         LeadConvert helps creators turn regular content into interactive AI

@@ -17,5 +17,11 @@ export default authMiddleware({
 });
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    "/((?!.+\\.[\\w]+$|_next).*)",  // Matches all non-static files
+    "/", 
+    "/api/:path*",                  // Ensures all API routes are matched
+    "/dashboard/:path*",             // If you have a dashboard or protected pages
+    "/(api|trpc)(.*)", 
+  ],
 };

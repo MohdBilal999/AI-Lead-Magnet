@@ -1,8 +1,5 @@
 import { authMiddleware } from "@clerk/nextjs";
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
 export default authMiddleware({
   publicRoutes: [
     "/",
@@ -12,7 +9,11 @@ export default authMiddleware({
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
   ],
-  ignoredRoutes: ["/((?!api|trpc))(_next.*|.+\.[\w]+$)", "/api/webhook/stripe"],
+  ignoredRoutes: [
+    "/_next/*",
+    "/.*\\.(?:png|jpg|jpeg|gif|css|js|map|ico|svg|woff|woff2|ttf|otf)$",
+    "/api/webhooks/stripe",
+  ],
 });
 
 export const config = {

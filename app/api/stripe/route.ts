@@ -15,7 +15,7 @@ export async function GET() {
       where: { userId: user.id },
     });
 
-    if (userSubscription?.stripeCustomerId) {
+    if (userSubscription && userSubscription.stripeCustomerId) {
       const stripeSession = await stripe.billingPortal.sessions.create({
         customer: userSubscription.stripeCustomerId,
         return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
@@ -30,17 +30,16 @@ export async function GET() {
       payment_method_types: ["card"],
       mode: "subscription",
       billing_address_collection: "auto",
-      customer: userSubscription?.stripeCustomerId || undefined, // ✅ Use existing customer
-      customer_email: userSubscription ? undefined : user.emailAddresses[0].emailAddress, // ✅ Only send if no customer
+      customer_email: user.emailAddresses[0].emailAddress,
       line_items: [
         {
           price_data: {
-            currency: "USD",
+            currency: "INR",
             product_data: {
               name: "Lead Convert Pro",
               description: "Unlimited AI Lead Magnets",
             },
-            unit_amount: 1000,
+            unit_amount: 79900,
             recurring: {
               interval: "month",
             },

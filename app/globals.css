@@ -255,3 +255,26 @@ body,
 .ProseMirror ol li label {
   margin-right: 3px;
 }
+
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: linear-gradient(to right, #ff6b6b, #6b5bff, #3498db);
+  height: 5px; /* Increased thickness */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1031;
+  transition: all 0.3s ease-in-out; /* Smooth transition */
+}
+
+ @keyframes blink {
+    0%, 100% { opacity: 1; }
+     50% { opacity: 0; }
+   }
+   .animate-blink {
+     animation: blink 1s step-end infinite;
+   }

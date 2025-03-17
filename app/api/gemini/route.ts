@@ -1,38 +1,53 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY_2!)
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const { messages } = await req.json()
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" })
 
+    // Ensure proper role mapping
     const chatHistory = messages.map((msg: any) => ({
       role: msg.role === "user" ? "user" : "model",
       parts: [{ text: msg.content }],
-    }));
+    }))
 
-    const result = await model.generateContent({ contents: chatHistory });
+    // Filter out system messages for Gemini
+    const filteredChatHistory = chatHistory.filter((msg: any) => msg.role === "user" || msg.role === "model")
 
-    const response = await result.response;
-    if (response && response.text) {
-      const responseText = await response.text(); // Ensure to await the response text
-      return new Response(responseText, {
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-      });
-    } else {
-      console.error("Invalid Gemini API response:", JSON.stringify(result, null, 2));
-      return new Response(JSON.stringify({ error: "Invalid Gemini response" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const result = await model.generateContentStream({ contents: filteredChatHistory })
 
+    // Create a TransformStream to stream the response
+    const encoder = new TextEncoder()
+    const stream = new TransformStream()
+    const writer = stream.writable.getWriter()
+
+    // Process the stream
+    ;(async () => {
+      try {
+        for await (const chunk of result.stream) {
+          const text = chunk.text()
+          if (text) {
+            await writer.write(encoder.encode(text))
+          }
+        }
+        await writer.close()
+      } catch (error) {
+        console.error("Error streaming response:", error)
+        writer.abort(error)
+      }
+    })()
+
+    return new Response(stream.readable, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    })
   } catch (error) {
-    console.error("Error in API:", error);
+    console.error("Error in API:", error)
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
-    });
+    })
   }
 }
+

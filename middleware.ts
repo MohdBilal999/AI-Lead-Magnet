@@ -10,18 +10,18 @@ export default authMiddleware({
     "/api/lead-magnet/unpublish",
   ],
   ignoredRoutes: [
-    "/_next/*",
-    "/.*\\.(?:png|jpg|jpeg|gif|css|js|map|ico|svg|woff|woff2|ttf|otf)$",
-    "/api/webhooks/stripe",
+    "/_next/(.*)", // ✅ Corrected pattern for Next.js assets
+    "/static/(.*)", // ✅ Ignores Next.js static files (if applicable)
+    "/favicon.ico",
+    "/manifest.json",
   ],
 });
 
 export const config = {
   matcher: [
-    "/((?!.+\\.[\\w]+$|_next).*)",  // Matches all non-static files
-    "/", 
-    "/api/:path*",                  // Ensures all API routes are matched
-    "/dashboard/:path*",             // If you have a dashboard or protected pages
-    "/(api|trpc)(.*)", 
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json).*)", // ✅ Excludes static assets
+    "/api/:path*", // ✅ Matches all API routes
+    "/dashboard/:path*", // ✅ Matches dashboard routes
+    "/(api|trpc)(.*)", // ✅ Matches API and TRPC routes
   ],
 };

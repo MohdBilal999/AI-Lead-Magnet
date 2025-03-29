@@ -94,7 +94,7 @@ const Hero = () => {
           duration: 1.2,
         }}
       >
-        Unleash the Power of Your{" "}
+        Unleash the Power of Your{" "} <br/>
         <div className="inline-block relative" style={{ minWidth: '200px', textAlign: 'left' }}>
           <span className="bg-gradient-to-r from-red-400 to-purple-600 bg-clip-text text-transparent">
             {currentText}
@@ -106,7 +106,7 @@ const Hero = () => {
               marginBottom: "-2px"
             }}
           />
-        </div>{" "}
+        </div>{" "} <br/>
         With{" "}
         <span className="bg-gradient-to-r from-red-400 to-purple-600 bg-clip-text text-transparent">
           AI Lead Magnets

@@ -44,6 +44,7 @@ model Lead {
   updatedAt    DateTime   @default(now())
   LeadMagnet   LeadMagnet @relation(fields: [leadMagnetId], references: [id], onDelete: Cascade)
 
+  emailRecipients EmailRecipient[]
   @@index([leadMagnetId])
   @@index([userId])
 }
@@ -84,18 +85,81 @@ model Subscription {
   @@index([userId])
 }
 
-// model Subscription {
-//   id                        String   @id @default(cuid())
-//   userId                    String   @unique
-//   razorpayCustomerId        String?  @unique
-//   razorpaySubscriptionId    String?  @unique
-//   razorpayOrderId           String?  @unique
-//   razorpayCurrentPeriodEnd  DateTime
-//   status                    String   @default("active") // active, canceled, expired
-//   planId                    String
-//   createdAt                 DateTime @default(now())
-//   updatedAt                 DateTime @updatedAt
 
-//   @@index([userId])
-// }
+// New models for email marketing
+
+model EmailCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  content     String   @db.Text
+  status      String   @default("draft") // draft, sent, scheduled
+  sentAt      DateTime?
+  scheduledAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  recipients  EmailRecipient[]
+  metrics     EmailMetrics?
+}
+
+model EmailRecipient {
+  id          String   @id @default(cuid())
+  campaignId  String
+  leadId      String
+  status      String   @default("pending") // pending, sent, delivered, opened, clicked, bounced
+  sentAt      DateTime?
+  openedAt    DateTime?
+  clickedAt   DateTime?
+  senderName  String?  // Add sender name
+  
+  // Relations
+  campaign    EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, leadId])
+}
+
+model EmailMetrics {
+  id          String   @id @default(cuid())
+  campaignId  String   @unique
+  sends       Int      @default(0)
+  opens       Int      @default(0)
+  clicks      Int      @default(0)
+  bounces     Int      @default(0)
+  unsubscribes Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  campaign    EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  subject     String
+  content     String   @db.Text
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmailEvent {
+  id          String   @id @default(cuid())
+  campaignId  String
+  leadEmail   String
+  eventType   String   // open, click, bounce, unsubscribe
+  url         String?  // For click events
+  userAgent   String?  // Browser/device info
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+  
+  @@index([campaignId])
+  @@index([leadEmail])
+  @@index([eventType])
+}
+
 

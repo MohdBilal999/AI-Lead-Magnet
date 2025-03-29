@@ -116,7 +116,7 @@ function LeadMagnetAIChatContainer({
             <div
               key={idx}
               className={`flex items-end ${
-                message.role === "user" ? "justify-end" : "justify-start"
+                message.role === "user" ? "justify-start" : "justify-end"
               }`}
             >
               <div

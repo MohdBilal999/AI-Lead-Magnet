@@ -34,6 +34,19 @@ export async function GET(req: { headers: { get: (arg0: string) => any; }; conne
       console.error("Failed to get location, using default INR pricing.");
     }
 
+    const userSubscription = await prismadb.subscription.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (userSubscription && userSubscription.stripeCustomerId) {
+      const stripeSession = await stripe.billingPortal.sessions.create({
+        customer: userSubscription.stripeCustomerId,
+        return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
+      });
+
+      return NextResponse.json({ url: stripeSession.url }, { status: 200 });
+    }
+
     // Create Stripe Checkout Session
     const stripeSession = await stripe.checkout.sessions.create({
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,

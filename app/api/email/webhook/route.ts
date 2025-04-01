@@ -1,115 +1,55 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prismadb } from "@/lib/prismadb"
 
+// This route handles webhooks from SendGrid for email events
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
-
     // SendGrid sends an array of events
-    const events = Array.isArray(data) ? data : [data]
+    const events = await request.json()
 
+    console.log("SendGrid webhook received:", JSON.stringify(events))
+
+    // Process each event
     for (const event of events) {
-      const campaignId = event.campaignId || ""
-      const email = event.email || ""
-      const eventType = event.event || ""
+      // Extract the campaign ID from custom args or message ID
+      const campaignId = event.customArgs?.campaignId || extractCampaignId(event.sg_message_id)
 
-      if (!campaignId || !email || !eventType) {
-        console.warn("Missing required fields in webhook event:", event)
+      if (!campaignId) {
+        console.warn("Event missing campaignId:", event)
         continue
       }
 
-      // Record the event
-      await prismadb.emailEvent.create({
-        data: {
-          campaignId,
-          leadEmail: email,
-          eventType,
-          url: event.url || null,
-          userAgent: event.useragent || null,
-          ipAddress: event.ip || null,
-        },
+      // Find the campaign
+      const campaign = await prismadb.emailCampaign.findUnique({
+        where: { id: campaignId },
+        include: { metrics: true },
       })
 
-      // Find the lead by email
-      const lead = await prismadb.lead.findFirst({
-        where: { email },
-      })
-
-      if (!lead) {
-        console.warn(`Lead not found for email: ${email}`)
-        continue
-      }
-
-      // Find the recipient
-      const recipient = await prismadb.emailRecipient.findFirst({
-        where: {
-          campaignId,
-          leadId: lead.id,
-        },
-      })
-
-      if (!recipient) {
-        console.warn(`Recipient not found for campaign ${campaignId} and lead ${lead.id}`)
+      if (!campaign) {
+        console.warn(`Campaign not found for ID: ${campaignId}`)
         continue
       }
 
       // Update metrics based on event type
-      if (eventType === "open") {
-        // Update metrics
-        await prismadb.emailMetrics.updateMany({
-          where: { campaignId },
-          data: { opens: { increment: 1 } },
-        })
-
-        // Update recipient if not already opened
-        if (!recipient.openedAt) {
-          await prismadb.emailRecipient.update({
-            where: { id: recipient.id },
-            data: {
-              status: "opened",
-              openedAt: new Date(),
-            },
-          })
-        }
-      } else if (eventType === "click") {
-        // Update metrics
-        await prismadb.emailMetrics.updateMany({
-          where: { campaignId },
-          data: { clicks: { increment: 1 } },
-        })
-
-        // Update recipient
-        await prismadb.emailRecipient.update({
-          where: { id: recipient.id },
-          data: {
-            status: "clicked",
-            clickedAt: new Date(),
-          },
-        })
-      } else if (eventType === "bounce") {
-        // Update metrics
-        await prismadb.emailMetrics.updateMany({
-          where: { campaignId },
-          data: { bounces: { increment: 1 } },
-        })
-
-        // Update recipient
-        await prismadb.emailRecipient.update({
-          where: { id: recipient.id },
-          data: { status: "bounced" },
-        })
-      } else if (eventType === "unsubscribe") {
-        // Update metrics
-        await prismadb.emailMetrics.updateMany({
-          where: { campaignId },
-          data: { unsubscribes: { increment: 1 } },
-        })
-
-        // Update recipient
-        await prismadb.emailRecipient.update({
-          where: { id: recipient.id },
-          data: { status: "unsubscribed" },
-        })
+      switch (event.event) {
+        case "open":
+          await updateMetrics(campaignId, { opens: 1 })
+          break
+        case "click":
+          await updateMetrics(campaignId, { clicks: 1 })
+          break
+        case "unsubscribe":
+          await updateMetrics(campaignId, { unsubscribes: 1 })
+          break
+        case "delivered":
+          await updateMetrics(campaignId, { delivered: 1 })
+          break
+        case "bounce":
+        case "dropped":
+          await updateMetrics(campaignId, { bounces: 1 })
+          break
+        default:
+          console.log(`Unhandled event type: ${event.event}`)
       }
     }
 
@@ -117,6 +57,57 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error processing email webhook:", error)
     return NextResponse.json({ error: "Failed to process webhook" }, { status: 500 })
+  }
+}
+
+// Helper function to extract campaign ID from SendGrid message ID
+function extractCampaignId(sgMessageId: string): string | null {
+  if (!sgMessageId) return null
+
+  // If we embedded the campaign ID in the message ID (e.g., "campaignId-timestamp.filterId")
+  const parts = sgMessageId.split(".")
+  if (parts.length > 0) {
+    const idParts = parts[0].split("-")
+    if (idParts.length > 0) {
+      return idParts[0]
+    }
+  }
+  return null
+}
+
+// Helper function to update metrics
+async function updateMetrics(campaignId: string, metricsUpdate: Record<string, number>) {
+  try {
+    // Check if metrics exist for this campaign
+    const existingMetrics = await prismadb.emailMetrics.findUnique({
+      where: { campaignId },
+    })
+
+    if (existingMetrics) {
+      // Update existing metrics
+      await prismadb.emailMetrics.update({
+        where: { campaignId },
+        data: Object.entries(metricsUpdate).reduce((acc, [key, value]) => {
+          acc[key] = { increment: value }
+          return acc
+        }, {} as any),
+      })
+    } else {
+      // Create new metrics record
+      await prismadb.emailMetrics.create({
+        data: {
+          campaignId,
+          ...Object.entries(metricsUpdate).reduce((acc, [key, value]) => {
+            acc[key] = value
+            return acc
+          }, {} as any),
+        },
+      })
+    }
+
+    console.log(`Updated metrics for campaign ${campaignId}:`, metricsUpdate)
+  } catch (error) {
+    console.error(`Error updating metrics for campaign ${campaignId}:`, error)
   }
 }
 

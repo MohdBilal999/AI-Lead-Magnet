@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server"
-import { sendEmail } from "@/lib/sendEmail"
+import  sendEmail  from "@/lib/sendEmail"
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (response.success) {
       return NextResponse.json({ message: "Email sent successfully!", messageId: response.messageId })
     } else {
-      return NextResponse.json({ error: response.error }, { status: 500 })
+      return NextResponse.json({ error: response.success || "Unknown error" }, { status: 500 })
     }
   } catch (error) {
     console.error("API Error:", error)

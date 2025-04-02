@@ -12,7 +12,7 @@ import { HiOutlineSparkles } from "react-icons/hi"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
-import LayoutWithBackground from "./with-background"
+// import LayoutWithBackground from "./with-background"
 
 interface LeadMagnetsContainerProps {
   leadMagnets: LeadMagnet[]
@@ -46,7 +46,7 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
   }
 
   return (
-    <LayoutWithBackground>
+    
       <div className="p-6 w-full lg:max-w-5xl lg:mx-auto backdrop-blur-sm bg-white/50 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-xl font-semibold">Lead Magnets</h2>
@@ -81,7 +81,7 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
           </div>
         )}
       </div>
-    </LayoutWithBackground>
+    
   )
 }
 

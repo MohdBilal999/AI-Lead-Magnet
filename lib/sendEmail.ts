@@ -52,7 +52,7 @@ export async function sendEmail({
     
     return {
       success: true,
-      messageId: Array.isArray(response) && response[0]?.messageId ? response[0].messageId : 'sent'
+      messageId: Array.isArray(response) && response[0]?.headers['x-message-id'] ? response[0].headers['x-message-id'] : 'sent'
     };
   } catch (error) {
     console.error("Error sending email:", error);

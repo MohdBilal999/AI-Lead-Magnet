@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       })
     } else {
       return NextResponse.json({ 
-        error: response.error || "Unknown error" 
+        error: "Failed to send email" 
       }, { status: 500 })
     }
   } catch (error) {

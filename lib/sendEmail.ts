@@ -1,3 +1,4 @@
+// File: app/actions/EmailActions.ts
 import sgMail from "@sendgrid/mail";
 
 interface Campaign {
@@ -8,24 +9,29 @@ interface SendEmailOptions {
   recipients: string[];
   subject: string;
   content: string;
-  campaign: Campaign;
+  campaign?: Campaign; // Make campaign optional
 }
 
-async function sendEmail({
+interface SendEmailResponse {
+  success: boolean;
+  messageId?: string;
+  error?: any;
+}
+
+export async function sendEmail({
   recipients,
   subject,
   content,
-  campaign,
-}: SendEmailOptions): Promise<void> {
+  campaign = { id: "default-campaign" }, // Provide default value
+}: SendEmailOptions): Promise<SendEmailResponse> {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
   try {
     // Format recipients properly for sendMultiple
-    // Each recipient needs to be a separate message with the same from, subject, content
     const messages = recipients.map((recipient) => ({
-      to: recipient, // Individual recipient email
+      to: recipient,
       from: {
-        email: process.env.FROM_EMAIL!, // Use FROM_EMAIL environment variable
+        email: process.env.FROM_EMAIL!,
         name: "Mohammed Bilal",
       },
       subject: subject,
@@ -40,9 +46,14 @@ async function sendEmail({
       },
     }));
 
-    // Use send() with an array of message objects instead of sendMultiple
+    // Use send() with an array of message objects
     const response = await sgMail.send(messages);
     console.log("Email sent successfully", response);
+    
+    return {
+      success: true,
+      messageId: Array.isArray(response) && response[0]?.messageId ? response[0].messageId : 'sent'
+    };
   } catch (error) {
     console.error("Error sending email:", error);
 
@@ -54,8 +65,9 @@ async function sendEmail({
       }
     }
 
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
 }
-
-export default sendEmail;

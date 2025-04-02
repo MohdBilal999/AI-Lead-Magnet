@@ -1,7 +1,7 @@
 import { prismadb } from "@/lib/prismadb";
 import { stripe } from "@/utils/stripe";
 import { currentUser } from "@clerk/nextjs";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 const exchangeRates = {
   USD: 0.012, // 1 INR = 0.012 USD
@@ -11,7 +11,7 @@ const exchangeRates = {
   INR: 1, // Default INR
 };
 
-export async function GET(req: { headers: { get: (arg0: string) => any; }; connection: { remoteAddress: any; }; }) {
+export async function GET(req: NextRequest) {
   try {
     const user = await currentUser();
     if (!user) return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
@@ -21,7 +21,7 @@ export async function GET(req: { headers: { get: (arg0: string) => any; }; conne
     let priceInLocalCurrency = 250000; // ₹2500 in minor units (paise)
 
     try {
-      const ip = req.headers.get("x-forwarded-for") || req.connection.remoteAddress;
+      const ip = req.headers.get("x-forwarded-for") || req.ip;
       const res = await fetch(`https://ipapi.co/${ip}/json/`);
       const data: { country_code?: string } = await res.json();
       const country = (data.country_code || "IN") as keyof typeof exchangeRates;
@@ -77,6 +77,6 @@ export async function GET(req: { headers: { get: (arg0: string) => any; }; conne
     return NextResponse.json({ url: stripeSession.url }, { status: 200 });
   } catch (e) {
     console.error("[STRIPE ERROR]", e);
-    return new NextResponse("Internal Error", { status: 500 });
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }

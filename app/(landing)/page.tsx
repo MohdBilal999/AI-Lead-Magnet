@@ -5,14 +5,6 @@ import { IoShareSocialSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
 import Hero from "./landingPage"
 import Pricing from "./Pricing"
-import {
-  Card,
-  CardHeader,
-  CardDescription,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 
 function LandingPage() {
   return (
@@ -30,8 +22,6 @@ function LandingPage() {
 
 export default LandingPage;
 
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -183,19 +173,6 @@ const HowItWorksStep = ({
     </div>
   );
 };
-
-
-
-import { Badge } from "@/components/ui/badge";
-
-
-
-
-
-
-
-
-
 
 
 const CallToAction = () => {

@@ -4,7 +4,6 @@ import "./globals.css";
 import "./styles/markdown.css"; // Added markdown.css from the first snippet
 import { ClerkProvider } from "@clerk/nextjs";
 import PageWrapper from "./PageWrapper"; // Import PageWrapper
-import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 

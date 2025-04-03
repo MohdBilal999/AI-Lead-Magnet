@@ -2,10 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { HiMail, HiSparkles } from "react-icons/hi";
-import { IoShareSocialSharp } from "react-icons/io5";
-import { FaCheck } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

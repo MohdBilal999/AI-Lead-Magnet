@@ -38,7 +38,7 @@ export async function generateMetadata({
       openGraphImage = {
         url: `https://image.thum.io/get/auth/${
           process.env.SCREENSHOT_ACCESS_KEY ?? ""
-        }/width/1200/crop/700/https://ai-lead-magnet.vercel.app/lm/${
+        }/width/1200/crop/700/https://ai-leads-convert.vercel.app/lm/${
           account.username
         }/${leadMagnet.slug}`,
         width: 4096,

@@ -35,6 +35,9 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
   
   // If user had subscription but it's not active now, they've cancelled
   const hadCancelledSubscription = hadSubscriptionEver && !isActive
+  
+  // Show "Subscribe Again" if user has more than 2 lead magnets (whether they had a subscription or not)
+  const shouldShowSubscribeAgain = !isActive && (hadCancelledSubscription || leadMagnets.length > MAXIMUM_FREE_LEAD_MAGNETS)
 
   // Determine if create button should be disabled:
   // 1. If user never subscribed and reached free limit (2 lead magnets)
@@ -70,28 +73,34 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
       <LeadMagnetTable leadMagnets={leadMagnets} leads={leads} />
       {!isActive && (
         <div className="flex flex-col w-full mt-8 items-center">
-          <Card className="backdrop-blur-sm bg-white/80">
+          <Card className="backdrop-blur-sm bg-white/80 max-w-md">
             <CardHeader className="text-center">
               <CardTitle className="bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text pb-1 w-fit mx-auto">
-                {hadCancelledSubscription ? "Reactivate Subscription" : "Upgrade To Pro"}
+                {shouldShowSubscribeAgain ? "Reactivate Subscription" : "Upgrade To Pro"}
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col">
+            <CardContent className="flex flex-col items-center">
               {/* Show different message based on user status */}
-              {hadCancelledSubscription ? (
-                <p className="text-gray-700 mb-2 text-center">
-                  Your subscription has been cancelled. Reactivate to continue creating lead magnets.
+              {shouldShowSubscribeAgain ? (
+                <p className="text-gray-700 mb-4 text-center">
+                  {hadCancelledSubscription 
+                    ? "Your subscription has been cancelled. Reactivate to continue creating lead magnets."
+                    : "You've exceeded the free limit. Subscribe to continue creating lead magnets."}
                 </p>
               ) : (
-                <p className="font-semibold text-gray-700 mb-2">
+                <p className="font-semibold text-gray-700 mb-4 text-center">
                   {leadMagnets.length} / {MAXIMUM_FREE_LEAD_MAGNETS} Free Lead Magnets Generated
                 </p>
               )}
-              <Button variant="ai" onClick={upgrade}>
+              <Button 
+                variant="ai" 
+                onClick={upgrade} 
+                className="w-40 mx-auto"
+              >
                 <span className="mr-2">
                   <HiOutlineSparkles />
                 </span>
-                {upgrading ? "Processing..." : hadCancelledSubscription ? "Subscribe Again" : "Upgrade"}
+                {upgrading ? "Processing..." : shouldShowSubscribeAgain ? "Subscribe Again" : "Upgrade"}
               </Button>
             </CardContent>
           </Card>

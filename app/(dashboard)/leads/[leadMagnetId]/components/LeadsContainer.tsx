@@ -17,7 +17,12 @@ function LeadsContainer({ leadMagnet, leads }: LeadsContainerProps) {
         </span>
       </div>
 
-      <LeadsTable leads={leads} />
+      <LeadsTable
+        leads={leads.map((lead) => ({
+          ...lead,
+          emailRecipients: [], // Provide a default empty array or populate as needed
+        }))}
+      />
     </div>
   );
 }

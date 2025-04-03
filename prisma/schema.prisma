@@ -35,16 +35,16 @@ model LeadMagnet {
 }
 
 model Lead {
-  id           String     @id @default(uuid())
-  userId       String
-  leadMagnetId String
-  name         String
-  email        String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @default(now())
-  LeadMagnet   LeadMagnet @relation(fields: [leadMagnetId], references: [id], onDelete: Cascade)
-
+  id              String   @id @default(uuid())
+  userId          String
+  leadMagnetId    String
+  name            String
+  email           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+  LeadMagnet      LeadMagnet @relation(fields: [leadMagnetId], references: [id], onDelete: Cascade)
   emailRecipients EmailRecipient[]
+
   @@index([leadMagnetId])
   @@index([userId])
 }

@@ -1,20 +1,12 @@
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { Lead, LeadMagnet } from "@prisma/client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import LeadMagnetAnalytics from "./LeadMagnetAnalytics";
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import type { Lead, LeadMagnet } from "@prisma/client"
+import Link from "next/link"
+import LeadMagnetAnalytics from "./LeadMagnetAnalytics"
 
 interface LeadMagnetTableProps {
-  leadMagnets: LeadMagnet[];
-  leads: Lead[];
+  leadMagnets: LeadMagnet[]
+  leads: Lead[]
 }
 
 // Custom analytics indicator component
@@ -37,45 +29,22 @@ const AnalyticsIndicator = () => (
       <path d="M8 17v-3"></path>
     </svg>
   </span>
-);
+)
 
-export default function LeadMagnetTable({
-  leadMagnets,
-  leads,
-}: LeadMagnetTableProps) {
-  const router = useRouter();
-
+export default function LeadMagnetTable({ leadMagnets, leads }: LeadMagnetTableProps) {
   const getLeadsForLeadMagnet = (leadMagnetId: string): number => {
-    const leadsForLeadMagnet = leads.filter(
-      (lead) => lead.leadMagnetId === leadMagnetId
-    );
+    const leadsForLeadMagnet = leads.filter((lead) => lead.leadMagnetId === leadMagnetId)
 
-    return leadsForLeadMagnet.length;
-  };
+    return leadsForLeadMagnet.length
+  }
 
-  const getConversionRate = (
-    leadMagnetId: string,
-    pageViews: number
-  ): number => {
-    if (pageViews === 0) return 0;
+  const getConversionRate = (leadMagnetId: string, pageViews: number): number => {
+    if (pageViews === 0) return 0
 
-    const conversionRate = Math.round(
-      (getLeadsForLeadMagnet(leadMagnetId) / pageViews) * 100
-    );
+    const conversionRate = Math.round((getLeadsForLeadMagnet(leadMagnetId) / pageViews) * 100)
 
-    return conversionRate;
-  };
-
-  const trackPageView = async (leadMagnetId: string) => {
-    try {
-      await fetch(`/api/lead-magnets/${leadMagnetId}/page-view`, {
-        method: "POST",
-      });
-      router.refresh(); // Refresh the page to update the counts
-    } catch (error) {
-      console.error("Error tracking page view:", error);
-    }
-  };
+    return conversionRate
+  }
 
   return (
     <Table>
@@ -94,15 +63,14 @@ export default function LeadMagnetTable({
           return (
             <TableRow key={leadMagnet.id}>
               <TableCell>
-                <LeadMagnetAnalytics
-                  leadMagnet={leadMagnet}
+                <LeadMagnetAnalytics 
+                  leadMagnet={leadMagnet} 
                   leadsCount={leadsCount}
                 >
                   <div className="flex items-center cursor-pointer group">
                     <Link
                       className="text-lg hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       href={`/lead-magnet-editor/${leadMagnet.id}`}
-                      onClick={() => trackPageView(leadMagnet.id)}
                     >
                       {leadMagnet.name}
                     </Link>
@@ -117,13 +85,7 @@ export default function LeadMagnetTable({
               <TableCell>{leadMagnet.pageViews}</TableCell>
               <TableCell>{leadsCount}</TableCell>
               <TableCell>
-                <span
-                  className={`font-medium ${
-                    getConversionRate(leadMagnet.id, leadMagnet.pageViews) > 5
-                      ? "text-green-600 dark:text-green-400"
-                      : ""
-                  }`}
-                >
+                <span className={`font-medium ${getConversionRate(leadMagnet.id, leadMagnet.pageViews) > 5 ? 'text-green-600 dark:text-green-400' : ''}`}>
                   {getConversionRate(leadMagnet.id, leadMagnet.pageViews)}%
                 </span>
               </TableCell>
@@ -135,9 +97,9 @@ export default function LeadMagnetTable({
                 </Link>
               </TableCell>
             </TableRow>
-          );
+          )
         })}
       </TableBody>
     </Table>
-  );
+  )
 }

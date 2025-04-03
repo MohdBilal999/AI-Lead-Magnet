@@ -3,6 +3,7 @@ import LeadMagnetNotFound from "@/components/LeadMagnetNotFound";
 import { prismadb } from "@/lib/prismadb";
 import React from "react";
 import LeadMagnetView from "./components/LeadMagnetView";
+import PageViewTracker from "./components/PageViewTracker";
 import { Metadata } from "next";
 
 interface LeadMagnetPageProps {
@@ -35,6 +36,7 @@ export async function generateMetadata({
     if (leadMagnet) {
       title = leadMagnet.publishedTitle;
       description = leadMagnet.publishedSubtitle;
+      // Fix the Thum.io URL string template
       openGraphImage = {
         url: `https://image.thum.io/get/auth/${
           process.env.SCREENSHOT_ACCESS_KEY ?? ""
@@ -100,6 +102,9 @@ async function LeadMagnetPage({ params }: LeadMagnetPageProps) {
 
   return (
     <div className="ai-dotted-pattern flex w-screen flex-col justify-between p-6 md:max-h-screen min-h-screen md:flex-row md:p-8 lg:p-12">
+      {/* Add the page view tracker component */}
+      <PageViewTracker leadMagnetId={leadMagnet.id} />
+      
       <LeadMagnetView leadMagnet={leadMagnet} profile={profile} />
       <div
         id="ai-chat"

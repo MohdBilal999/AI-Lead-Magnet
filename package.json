@@ -59,6 +59,7 @@
     "stripe": "^14.2.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
+    "thum.io": "^1.0.9",
     "unique-username-generator": "^1.2.0",
     "uploadthing": "^5.7.2",
     "zod": "^3.22.4"

@@ -20,7 +20,7 @@ export async function generateMetadata({
     where: { username: params.username },
   });
 
-  let title = "ai-leads-convert.vercel.app";
+  let title = "ai-lead-magnet.vercel.app";
   let description =
     "LeadConvert helps creators turn regular content into interactive AI experiences, effortlessly capturing leads, and nurturing them towards your digital products or courses.";
   let openGraphImage;
@@ -40,7 +40,7 @@ export async function generateMetadata({
       openGraphImage = {
         url: `https://image.thum.io/get/auth/${
           process.env.SCREENSHOT_ACCESS_KEY ?? ""
-        }/width/1200/crop/700/https://ai-leads-convert.vercel.app/lm/${
+        }/width/1200/crop/700/https://ai-lead-magnet.vercel.app/lm/${
           account.username
         }/${leadMagnet.slug}`,
         width: 4096,

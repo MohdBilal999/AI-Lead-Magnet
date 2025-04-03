@@ -1,4 +1,4 @@
-// Create this file at: app/api/pageview/route.ts
+// Create this file at: app/api/pageView/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prismadb } from "@/lib/prismadb";
 
@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { leadMagnetId } = body;
-    
+
     if (!leadMagnetId) {
       return NextResponse.json(
         { error: "Lead magnet ID is required" },
@@ -19,14 +19,14 @@ export async function POST(req: NextRequest) {
       where: { id: leadMagnetId },
       data: {
         pageViews: {
-          increment: 1
-        }
-      }
+          increment: 1,
+        },
+      },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      pageViews: updatedLeadMagnet.pageViews 
+    return NextResponse.json({
+      success: true,
+      pageViews: updatedLeadMagnet.pageViews,
     });
   } catch (error) {
     console.error("Error tracking page view:", error);

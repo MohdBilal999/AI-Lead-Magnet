@@ -1,44 +1,31 @@
-"use server"
+"use server";
 
-import { prismadb } from "@/lib/prismadb"
+import { prismadb } from "@/lib/prismadb";
 
 export async function getLeadMagnetMetrics(leadMagnetId: string) {
   try {
-    // Get all leads for this lead magnet
     const leads = await prismadb.lead.findMany({
       where: {
         leadMagnetId: leadMagnetId,
       },
-      select: {
-        id: true,
+      include: {
+        emailRecipients: {
+          include: {
+            campaign: true,
+          },
+        },
       },
-    })
+    });
 
-    // Get lead IDs
-    const leadIds = leads.map((lead) => lead.id)
-
-    if (leadIds.length === 0) {
-      return null
+    if (leads.length === 0) {
+      return null;
     }
 
     // Get all email recipients for these leads
-    const recipients = await prismadb.emailRecipient.findMany({
-      where: {
-        leadId: {
-          in: leadIds,
-        },
-      },
-      include: {
-        campaign: true,
-      },
-    })
-
-    if (recipients.length === 0) {
-      return null
-    }
-
-    // Get campaign IDs
-    const campaignIds = Array.from(new Set(recipients.map((r) => r.campaignId)))
+    const recipients = leads.flatMap((lead) => lead.emailRecipients);
+    const campaignIds = Array.from(
+      new Set(recipients.map((r) => r.campaignId))
+    );
 
     // Get email metrics for these campaigns
     const metrics = await prismadb.emailMetrics.findMany({
@@ -47,7 +34,7 @@ export async function getLeadMagnetMetrics(leadMagnetId: string) {
           in: campaignIds,
         },
       },
-    })
+    });
 
     // Get email events for these campaigns
     const events = await prismadb.emailEvent.findMany({
@@ -59,7 +46,23 @@ export async function getLeadMagnetMetrics(leadMagnetId: string) {
       orderBy: {
         timestamp: "desc",
       },
-    })
+    });
+
+    // Calculate send status metrics
+    const statusMetrics = recipients.reduce(
+      (acc, recipient) => {
+        acc.total++;
+        if (
+          recipient.status === "sent" ||
+          recipient.status === "opened" ||
+          recipient.status === "clicked"
+        ) {
+          acc.delivered++;
+        }
+        return acc;
+      },
+      { total: 0, delivered: 0 }
+    );
 
     // Calculate aggregated metrics
     const aggregatedMetrics = {
@@ -69,56 +72,57 @@ export async function getLeadMagnetMetrics(leadMagnetId: string) {
       bounces: metrics.reduce((sum, m) => sum + m.bounces, 0),
       unsubscribes: metrics.reduce((sum, m) => sum + m.unsubscribes, 0),
       campaigns: campaignIds.length,
-    }
+      delivered: statusMetrics.delivered,
+      totalEmails: statusMetrics.total,
+    };
 
     // Calculate daily stats for the last 7 days
-    const dailyStats = getDailyStats(events)
+    const dailyStats = getDailyStats(events);
 
     return {
       ...aggregatedMetrics,
       dailyStats,
-    }
+    };
   } catch (error) {
-    console.error("Error fetching lead magnet metrics:", error)
-    throw error
+    console.error("Error fetching lead magnet metrics:", error);
+    throw error;
   }
 }
 
 function getDailyStats(events: any[]) {
-  const today = new Date()
-  const result = []
+  const today = new Date();
+  const result = [];
 
   // Create an array of the last 7 days
   for (let i = 6; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(today.getDate() - i)
-    date.setHours(0, 0, 0, 0)
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    date.setHours(0, 0, 0, 0);
 
-    const dayStr = date.toLocaleDateString("en-US", { weekday: "short" })
+    const dayStr = date.toLocaleDateString("en-US", { weekday: "short" });
 
     // Filter events for this day
     const dayEvents = events.filter((event) => {
-      const eventDate = new Date(event.timestamp)
+      const eventDate = new Date(event.timestamp);
       return (
         eventDate.getDate() === date.getDate() &&
         eventDate.getMonth() === date.getMonth() &&
         eventDate.getFullYear() === date.getFullYear()
-      )
-    })
+      );
+    });
 
     // Count events by type
-    const sends = dayEvents.filter((e) => e.eventType === "send").length
-    const opens = dayEvents.filter((e) => e.eventType === "open").length
-    const clicks = dayEvents.filter((e) => e.eventType === "click").length
+    const sends = dayEvents.filter((e) => e.eventType === "send").length;
+    const opens = dayEvents.filter((e) => e.eventType === "open").length;
+    const clicks = dayEvents.filter((e) => e.eventType === "click").length;
 
     result.push({
       date: dayStr,
       sends,
       opens,
       clicks,
-    })
+    });
   }
 
-  return result
+  return result;
 }
-

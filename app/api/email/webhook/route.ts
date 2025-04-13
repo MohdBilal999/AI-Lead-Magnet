@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Create EmailEvent record
+      // Create EmailEvent record with timestamp
       await prismadb.emailEvent.create({
         data: {
           campaignId,
@@ -23,31 +23,31 @@ export async function POST(request: NextRequest) {
           url: event.url || null,
           userAgent: event.useragent || null,
           ipAddress: event.ip || null,
+          timestamp: new Date(),
         },
       });
 
-      // Update EmailRecipient status and timestamps
-      await updateRecipientStatus(campaignId, event);
+      // Find recipient for status update
+      const recipient = await prismadb.emailRecipient.findFirst({
+        where: {
+          campaign: { id: campaignId },
+          lead: { email: event.email },
+        },
+      });
 
-      // Update aggregate metrics
-      switch (event.event) {
-        case "open":
-          await updateMetrics(campaignId, { opens: 1 });
-          break;
-        case "click":
-          await updateMetrics(campaignId, { clicks: 1 });
-          break;
-        case "unsubscribe":
-          await updateMetrics(campaignId, { unsubscribes: 1 });
-          break;
-        case "delivered":
-          await updateMetrics(campaignId, { delivered: 1 });
-          break;
-        case "bounce":
-        case "dropped":
-          await updateMetrics(campaignId, { bounces: 1 });
-          break;
+      if (recipient) {
+        // Update recipient status based on event type
+        const statusUpdate = getStatusUpdate(event.event);
+        if (statusUpdate) {
+          await prismadb.emailRecipient.update({
+            where: { id: recipient.id },
+            data: statusUpdate,
+          });
+        }
       }
+
+      // Update metrics based on event type
+      await updateMetrics(campaignId, event.event);
     }
 
     return NextResponse.json({ success: true });
@@ -60,88 +60,77 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper function to extract campaign ID from SendGrid message ID
+function getStatusUpdate(eventType: string) {
+  switch (eventType) {
+    case "delivered":
+      return {
+        status: "sent",
+        sentAt: new Date(),
+      };
+    case "open":
+      return {
+        status: "opened",
+        openedAt: new Date(),
+      };
+    case "click":
+      return {
+        status: "clicked",
+        clickedAt: new Date(),
+      };
+    case "bounce":
+    case "dropped":
+      return {
+        status: "failed",
+      };
+    case "unsubscribe":
+      return {
+        status: "unsubscribed",
+      };
+    default:
+      return null;
+  }
+}
+
+async function updateMetrics(campaignId: string, eventType: string) {
+  const metricsUpdate: any = {};
+
+  switch (eventType) {
+    case "delivered":
+      metricsUpdate.sends = { increment: 1 };
+      break;
+    case "open":
+      metricsUpdate.opens = { increment: 1 };
+      break;
+    case "click":
+      metricsUpdate.clicks = { increment: 1 };
+      break;
+    case "bounce":
+    case "dropped":
+      metricsUpdate.bounces = { increment: 1 };
+      break;
+    case "unsubscribe":
+      metricsUpdate.unsubscribes = { increment: 1 };
+      break;
+  }
+
+  if (Object.keys(metricsUpdate).length > 0) {
+    await prismadb.emailMetrics.update({
+      where: { campaignId },
+      data: metricsUpdate,
+    });
+
+    // Also update campaign status for certain events
+    if (eventType === "delivered") {
+      await prismadb.emailCampaign.update({
+        where: { id: campaignId },
+        data: { status: "delivered" },
+      });
+    }
+  }
+}
+
 function extractCampaignId(sgMessageId: string): string | null {
   if (!sgMessageId) return null;
-
   const parts = sgMessageId.split(".");
-  if (parts.length > 0) {
-    const idParts = parts[0].split("-");
-    if (idParts.length > 0) {
-      return idParts[0];
-    }
-  }
-  return null;
-}
-
-// Helper function to update metrics
-async function updateMetrics(
-  campaignId: string,
-  metricsUpdate: Record<string, number>
-) {
-  try {
-    const existingMetrics = await prismadb.emailMetrics.findUnique({
-      where: { campaignId },
-    });
-
-    if (existingMetrics) {
-      await prismadb.emailMetrics.update({
-        where: { campaignId },
-        data: Object.entries(metricsUpdate).reduce((acc, [key, value]) => {
-          acc[key] = { increment: value };
-          return acc;
-        }, {} as any),
-      });
-    } else {
-      await prismadb.emailMetrics.create({
-        data: {
-          campaignId,
-          ...Object.entries(metricsUpdate).reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-          }, {} as any),
-        },
-      });
-    }
-
-    console.log(`Updated metrics for campaign ${campaignId}:`, metricsUpdate);
-  } catch (error) {
-    console.error(`Error updating metrics for campaign ${campaignId}:`, error);
-  }
-}
-
-async function updateRecipientStatus(campaignId: string, event: any) {
-  try {
-    const recipient = await prismadb.emailRecipient.findFirst({
-      where: {
-        campaignId,
-        lead: {
-          email: event.email,
-        },
-      },
-    });
-
-    if (!recipient) return;
-
-    const updateData: any = { status: event.event };
-
-    switch (event.event) {
-      case "open":
-        updateData.openedAt = new Date();
-        break;
-      case "click":
-        updateData.clickedAt = new Date();
-        break;
-      case "delivered":
-        updateData.sentAt = new Date();
-        break;
-    }
-
-    await prismadb.emailRecipient.update({
-      where: { id: recipient.id },
-      data: updateData,
-    });
-  } catch (error) {
-    console.error("Error updating recipient status:", error);
-  }
+  return parts.length > 0 ? parts[0] : null;
 }

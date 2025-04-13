@@ -1,59 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { getEmailMetrics } from "@/app/actions/EmailActions";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  TooltipProps,
-} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { InfoIcon } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface EmailMetricsProps {
   messageId: string;
 }
 
-interface Metrics {
-  messageId: string;
+interface MetricsData {
   opens: number;
   clicks: number;
-  unsubscribes: number;
+  sends: number;
+  total?: number;
+  status?: string;
 }
 
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: TooltipProps<number, string>) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border">
-        <p className="font-semibold text-gray-800">{label}</p>
-        <p className="text-sm text-gray-600">
-          {label === "Clicks" && <>Total Clicks: {payload[0].value}</>}
-          {label === "Opens" && <>Total Opens: {payload[0].value}</>}
-          {label === "Unsubscribes" && (
-            <>Total Unsubscribes: {payload[0].value}</>
-          )}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
-
 export default function EmailMetrics({ messageId }: EmailMetricsProps) {
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,89 +29,102 @@ export default function EmailMetrics({ messageId }: EmailMetricsProps) {
         const data = await getEmailMetrics(messageId);
         setMetrics(data);
       } catch (error) {
-        console.error("Error fetching email metrics:", error);
+        console.error("Error fetching metrics:", error);
+        setMetrics({ opens: 0, clicks: 0, sends: 0 });
       } finally {
         setLoading(false);
       }
     };
 
     fetchMetrics();
-
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchMetrics, 30000);
-
+    const interval = setInterval(fetchMetrics, 10000); // Poll every 10 seconds
     return () => clearInterval(interval);
   }, [messageId]);
 
   if (loading) {
-    return <div className="text-center py-4">Loading metrics...</div>;
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!metrics) {
-    return <div className="text-center py-4">No metrics available</div>;
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-sm text-muted-foreground">
+          Waiting for email metrics...
+        </CardContent>
+      </Card>
+    );
   }
 
-  const chartData = [
-    {
-      name: "Opens",
-      value: metrics.opens,
-      description: "Number of times the email was opened",
-    },
-    {
-      name: "Clicks",
-      value: metrics.clicks,
-      description: "Number of link clicks in the email",
-    },
-    {
-      name: "Unsubscribes",
-      value: metrics.unsubscribes,
-      description: "Number of recipients who unsubscribed",
-    },
-  ];
+  const getInteractionProgress = () => {
+    if (!metrics.total) return 0;
+    const totalInteractions = metrics.opens + metrics.clicks;
+    return (totalInteractions / (metrics.total * 2)) * 100; // Multiply by 2 since each recipient can open and click
+  };
 
-  const clickRate =
-    metrics.opens > 0
-      ? ((metrics.clicks / metrics.opens) * 100).toFixed(1)
-      : "0";
+  const getStatusMessage = () => {
+    if (metrics.sends === 0) return "Email not sent yet";
+    if (metrics.opens === 1) return "Email has been opened!";
+    if (metrics.clicks === 1) return "Email link was clicked!";
+    return metrics.sends === 1 ? "Email sent successfully" : "";
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email Campaign Metrics</CardTitle>
-        <CardDescription>
-          Performance data for your email campaign
-        </CardDescription>
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">
+          Email Engagement
+          {metrics.sends === 0 && (
+            <span className="ml-2 text-xs text-muted-foreground">
+              Waiting for delivery...
+            </span>
+          )}
+        </CardTitle>
+        <InfoIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold">{metrics.opens}</div>
-            <div className="text-sm text-muted-foreground">Opens</div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">
+                {metrics.sends === 1 ? "✓" : metrics.sends}
+              </div>
+              <div className="text-xs text-muted-foreground">Sent</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">
+                {metrics.opens === 1 ? "✓" : metrics.opens}
+              </div>
+              <div className="text-xs text-muted-foreground">Opened</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">
+                {metrics.clicks === 1 ? "✓" : metrics.clicks}
+              </div>
+              <div className="text-xs text-muted-foreground">Clicked</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">{metrics.clicks}</div>
-            <div className="text-sm text-muted-foreground">Clicks</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">{clickRate}%</div>
-            <div className="text-sm text-muted-foreground">Click Rate</div>
-          </div>
-        </div>
 
-        <div className="h-[200px] mt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="value"
-                fill="#8884d8"
-                radius={[4, 4, 0, 0]}
-                barSize={40}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {metrics.total && metrics.total > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Interaction Progress</span>
+                <span>{Math.round(getInteractionProgress())}%</span>
+              </div>
+              <Progress value={getInteractionProgress()} className="h-2" />
+            </div>
+          )}
+
+          {getStatusMessage() && (
+            <div className="text-sm text-center font-medium text-primary">
+              {getStatusMessage()}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

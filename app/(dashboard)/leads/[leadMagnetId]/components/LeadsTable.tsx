@@ -96,6 +96,7 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
   const [emailTarget, setEmailTarget] = useState<
     LeadWithMetrics | LeadWithMetrics[]
   >([]);
+  const [emailStatus, setEmailStatus] = useState<{ [key: string]: string }>({});
 
   const handleSelectLead = (lead: LeadWithMetrics, checked: boolean) => {
     if (checked) {
@@ -118,6 +119,31 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
     setIsEmailModalOpen(true);
   };
 
+  const handleEmailModalClose = () => {
+    setIsEmailModalOpen(false);
+    // Update email status for sent emails
+    const targetLeads = Array.isArray(emailTarget)
+      ? emailTarget
+      : [emailTarget];
+    const updatedLeads = leads.map((lead) => {
+      if (targetLeads.find((target) => target.id === lead.id)) {
+        return {
+          ...lead,
+          emailRecipients: [
+            {
+              status: "sent",
+              sentAt: new Date(),
+            },
+            ...lead.emailRecipients,
+          ],
+        };
+      }
+      return lead;
+    });
+    // Force re-render with updated status
+    setSelectedLeads([]);
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -131,18 +157,18 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
   const getLeadCampaignMetrics = (lead: LeadWithMetrics) => {
     // Create a map of campaign metrics by campaign ID
     const campaignMetricsMap = new Map();
-    
+
     // Gather all campaign metrics
-    lead.emailRecipients.forEach(recipient => {
+    lead.emailRecipients.forEach((recipient) => {
       if (recipient.campaign && recipient.campaign.metrics) {
         const campaignId = recipient.campaignId;
-        
+
         if (!campaignMetricsMap.has(campaignId)) {
           campaignMetricsMap.set(campaignId, recipient.campaign.metrics);
         }
       }
     });
-    
+
     // Return as array of metrics
     return Array.from(campaignMetricsMap.values());
   };
@@ -165,28 +191,33 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
 
   const getEngagementScore = (lead: LeadWithMetrics) => {
     const metrics = getTotalMetrics(lead);
-    
+
     if (metrics.sends === 0) return 0;
-    
+
     // Calculate score: (opens + clicks*2) / sends
-    const score = Math.min(100, Math.round(((metrics.opens + metrics.clicks * 2) / metrics.sends) * 100));
+    const score = Math.min(
+      100,
+      Math.round(((metrics.opens + metrics.clicks * 2) / metrics.sends) * 100)
+    );
     return score;
   };
 
   const getLastEngagement = (lead: LeadWithMetrics) => {
     const engagements = [
-      ...lead.emailRecipients.map(r => r.openedAt).filter(Boolean),
-      ...lead.emailRecipients.map(r => r.clickedAt).filter(Boolean)
+      ...lead.emailRecipients.map((r) => r.openedAt).filter(Boolean),
+      ...lead.emailRecipients.map((r) => r.clickedAt).filter(Boolean),
     ].sort((a, b) => new Date(b!).getTime() - new Date(a!).getTime());
-    
+
     return engagements.length > 0 ? engagements[0] : null;
   };
 
   const getLatestCampaign = (lead: LeadWithMetrics) => {
     const campaigns = lead.emailRecipients
-      .filter(r => r.sentAt && r.campaign?.name)
-      .sort((a, b) => new Date(b.sentAt!).getTime() - new Date(a.sentAt!).getTime());
-    
+      .filter((r) => r.sentAt && r.campaign?.name)
+      .sort(
+        (a, b) => new Date(b.sentAt!).getTime() - new Date(a.sentAt!).getTime()
+      );
+
     return campaigns.length > 0 ? campaigns[0].campaign.name : "None";
   };
 
@@ -219,16 +250,16 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
             <TableHead className="text-lg">Lead</TableHead>
             <TableHead className="text-lg">Email</TableHead>
             <TableHead className="text-lg">Signup Date</TableHead>
-            <TableHead className="text-lg">Engagement</TableHead>
+            <TableHead className="text-lg">Email Status</TableHead>
             <TableHead className="text-lg">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {leads.map((lead) => {
             const metrics = getTotalMetrics(lead);
-            const engagementScore = getEngagementScore(lead);
-            const lastEngagement = getLastEngagement(lead);
-            
+            const latestRecipient = lead.emailRecipients[0];
+            const interactionStatus = getInteractionStatus(latestRecipient);
+
             return (
               <TableRow
                 key={lead.id}
@@ -254,7 +285,10 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
                         <span className="font-medium">{lead.name}</span>
                         <Info className="h-4 w-4 text-muted-foreground transition-colors hover:text-primary" />
                       </HoverCardTrigger>
-                      <HoverCardContent align="start" className="w-[340px] p-5 shadow-lg rounded-xl border-none">
+                      <HoverCardContent
+                        align="start"
+                        className="w-[340px] p-5 shadow-lg rounded-xl border-none"
+                      >
                         <div className="space-y-5">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-12 w-12 bg-primary/10">
@@ -264,13 +298,31 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
                             </Avatar>
                             <div className="flex-1">
                               <h4 className="font-semibold">{lead.name}</h4>
-                              <p className="text-sm text-muted-foreground">{lead.email}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {lead.email}
+                              </p>
                             </div>
-                            <Badge variant={engagementScore > 70 ? "default" : engagementScore > 30 ? "outline" : "secondary"}>
-                              {engagementScore > 70 ? "Active" : engagementScore > 30 ? "Moderate" : "Cold"}
+                            <Badge
+                              variant={
+                                getEngagementScore(lead) > 70
+                                  ? "default"
+                                  : getEngagementScore(lead) > 30
+                                  ? "outline"
+                                  : "secondary"
+                              }
+                              className="flex items-center gap-2"
+                            >
+                              {getEngagementScore(lead) > 70
+                                ? "Active"
+                                : getEngagementScore(lead) > 30
+                                ? "Moderate"
+                                : "Cold"}
+                              <span className="text-xs">
+                                ({getEngagementScore(lead)}%)
+                              </span>
                             </Badge>
                           </div>
-                          
+
                           <div className="space-y-2">
                             <h4 className="text-sm font-semibold flex items-center gap-2">
                               <Sparkles className="h-4 w-4 text-primary" />
@@ -278,50 +330,78 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
                             </h4>
                             <div className="grid grid-cols-2 gap-3">
                               <EmailMetricItem
-                                icon={<Mail className="h-4 w-4 text-yellow-500" />}
+                                icon={
+                                  <Mail className="h-4 w-4 text-yellow-500" />
+                                }
                                 label="Emails Sent"
                                 value={metrics.sends || 0}
-                                suffix={metrics.sends === 1 ? "email" : "emails"}
+                                suffix={
+                                  metrics.sends === 1 ? "email" : "emails"
+                                }
                               />
                               <EmailMetricItem
-                                icon={<Mails className="h-4 w-4 text-blue-500" />}
+                                icon={
+                                  <Mails className="h-4 w-4 text-blue-500" />
+                                }
                                 label="Opens"
                                 value={metrics.opens || 0}
                                 suffix={metrics.opens === 1 ? "open" : "opens"}
-                                subtext={metrics.sends > 0 ? `${Math.round((metrics.opens / metrics.sends) * 100)}% rate` : ""}
+                                subtext={
+                                  metrics.sends > 0
+                                    ? `${Math.round(
+                                        (metrics.opens / metrics.sends) * 100
+                                      )}% rate`
+                                    : ""
+                                }
                               />
                               <EmailMetricItem
-                                icon={<MousePointerClick className="h-4 w-4 text-green-500" />}
+                                icon={
+                                  <MousePointerClick className="h-4 w-4 text-green-500" />
+                                }
                                 label="Clicks"
                                 value={metrics.clicks || 0}
-                                suffix={metrics.clicks === 1 ? "click" : "clicks"}
-                                subtext={metrics.sends > 0 ? `${Math.round((metrics.clicks / metrics.sends) * 100)}% rate` : ""}
+                                suffix={
+                                  metrics.clicks === 1 ? "click" : "clicks"
+                                }
+                                subtext={
+                                  metrics.sends > 0
+                                    ? `${Math.round(
+                                        (metrics.clicks / metrics.sends) * 100
+                                      )}% rate`
+                                    : ""
+                                }
                               />
                               <EmailMetricItem
-                                icon={<UserMinus className="h-4 w-4 text-red-500" />}
+                                icon={
+                                  <UserMinus className="h-4 w-4 text-red-500" />
+                                }
                                 label="Unsubscribes"
                                 value={metrics.unsubscribes || 0}
                                 emphasis={true}
                               />
                             </div>
                           </div>
-                          
+
                           <div className="space-y-2 pt-2 border-t">
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 Latest Campaign:
                               </span>
-                              <span className="text-xs font-medium">{getLatestCampaign(lead)}</span>
+                              <span className="text-xs font-medium bg-muted px-2 py-1 rounded">
+                                {getLatestCampaign(lead)}
+                              </span>
                             </div>
-                            {lastEngagement && (
+                            {getLastEngagement(lead) && (
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                                   <MousePointerClick className="h-3 w-3" />
                                   Last Engaged:
                                 </span>
-                                <span className="text-xs font-medium">
-                                  {dayjs(lastEngagement).format("MMM D, YYYY")}
+                                <span className="text-xs font-medium bg-muted px-2 py-1 rounded">
+                                  {dayjs(getLastEngagement(lead)).format(
+                                    "MMM D, YYYY"
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -331,28 +411,72 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
                     </HoverCard>
                   </div>
                 </TableCell>
-                
+
                 <TableCell>{lead.email}</TableCell>
                 <TableCell>
                   {dayjs(lead.createdAt).format("MMM D, YYYY")}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center">
-                    <div className="w-full bg-muted rounded-full h-2 mr-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          engagementScore > 70 
-                            ? "bg-green-500" 
-                            : engagementScore > 30 
-                              ? "bg-yellow-500" 
-                              : "bg-red-500"
-                        }`} 
-                        style={{ width: `${engagementScore}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-medium">{engagementScore}%</span>
-                  </div>
+                  <HoverCard>
+                    <HoverCardTrigger>
+                      <div className="flex items-center gap-2">
+                        {interactionStatus.icon}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {interactionStatus.label}
+                          </span>
+                          {latestRecipient?.sentAt && (
+                            <span className="text-xs text-muted-foreground">
+                              {dayjs(latestRecipient.sentAt).format(
+                                "MMM D, h:mm A"
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                      <div className="space-y-3">
+                        <h4 className="font-medium">Email Interactions</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">
+                              Sent
+                            </div>
+                            <div className="font-medium">
+                              {metrics.sends === 1 ? "✓" : metrics.sends || 0}
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">
+                              Opened
+                            </div>
+                            <div className="font-medium">
+                              {metrics.opens === 1 ? "✓" : metrics.opens || 0}
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">
+                              Clicked
+                            </div>
+                            <div className="font-medium">
+                              {metrics.clicks === 1 ? "✓" : metrics.clicks || 0}
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">
+                              Bounced
+                            </div>
+                            <div className="font-medium text-red-500">
+                              {metrics.bounces > 0 ? "Yes" : "No"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </TableCell>
+
                 <TableCell>
                   <Button
                     variant="outline"
@@ -376,24 +500,78 @@ function LeadsTable({ leads }: { leads: LeadWithMetrics[] }) {
 
       <EmailModal
         isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
+        onClose={handleEmailModalClose}
         recipients={emailTarget}
+        leadMagnetId={""}
       />
     </>
   );
 }
 
-const EmailMetricItem = ({ icon, label, value, suffix, subtext, emphasis = false }: any) => (
-  <div className={`flex items-center gap-2 cursor-default ${emphasis && value > 0 ? "text-red-500" : ""}`}>
+const EmailMetricItem = ({
+  icon,
+  label,
+  value,
+  suffix,
+  subtext,
+  emphasis = false,
+}: any) => (
+  <div
+    className={`flex items-center gap-2 cursor-default ${
+      emphasis && value > 0 ? "text-red-500" : ""
+    }`}
+  >
     {icon}
     <div>
       <p className="text-sm font-medium">{label}</p>
-      <p className={`text-lg font-semibold ${emphasis && value > 0 ? "text-red-500" : ""}`}>
+      <p
+        className={`text-lg font-semibold ${
+          emphasis && value > 0 ? "text-red-500" : ""
+        }`}
+      >
         {value} {suffix}
       </p>
       {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
     </div>
   </div>
 );
+
+function getInteractionStatus(recipient: any) {
+  if (!recipient) {
+    return {
+      icon: <Mail className="h-4 w-4 text-muted-foreground" />,
+      label: "No emails sent",
+    };
+  }
+
+  switch (recipient.status) {
+    case "clicked":
+      return {
+        icon: <MousePointerClick className="h-4 w-4 text-green-500" />,
+        label: "Clicked",
+      };
+    case "opened":
+      return {
+        icon: <Mail className="h-4 w-4 text-blue-500" />,
+        label: "Opened",
+      };
+    case "sent":
+      return {
+        icon: <Mail className="h-4 w-4 text-yellow-500" />,
+        label: "Sent",
+      };
+    case "failed":
+      return {
+        icon: <Mail className="h-4 w-4 text-red-500" />,
+        label: "Failed",
+      };
+    default:
+      return {
+        icon: <Mail className="h-4 w-4 text-muted-foreground" />,
+        label:
+          recipient.status.charAt(0).toUpperCase() + recipient.status.slice(1),
+      };
+  }
+}
 
 export default LeadsTable;

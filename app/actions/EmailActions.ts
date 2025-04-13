@@ -107,51 +107,69 @@ export async function sendEmail({
 
 export async function getEmailMetrics(messageId: string) {
   try {
-    const [campaign, metrics, recipients] = await Promise.all([
-      prismadb.emailCampaign.findUnique({
-        where: { id: messageId },
-      }),
-      prismadb.emailMetrics.findUnique({
+    // Get metrics and recipients count
+    const [metrics, recipients] = await Promise.all([
+      prismadb.emailMetrics.findFirst({
         where: { campaignId: messageId },
+        include: { campaign: true },
       }),
       prismadb.emailRecipient.findMany({
         where: { campaignId: messageId },
       }),
     ]);
 
-    if (!metrics) {
+    // If metrics exist, return with total recipients
+    if (metrics) {
+      // Convert boolean-like numbers to actual booleans for display
+      const sends =
+        metrics.sends === 1
+          ? 1
+          : recipients.filter((r) => r.status === "sent").length;
+      const opens =
+        metrics.opens === 1
+          ? 1
+          : recipients.filter((r) => r.status === "opened").length;
+      const clicks =
+        metrics.clicks === 1
+          ? 1
+          : recipients.filter((r) => r.status === "clicked").length;
+
       return {
-        messageId,
-        opens: 0,
-        clicks: 0,
-        unsubscribes: 0,
-        status: campaign?.status || "unknown",
-        sentAt: campaign?.sentAt,
-        totalRecipients: recipients.length,
-        deliveredCount: recipients.filter(
-          (r) =>
-            r.status === "sent" ||
-            r.status === "opened" ||
-            r.status === "clicked"
-        ).length,
+        opens,
+        clicks,
+        sends,
+        total: recipients.length,
+        status: metrics.campaign?.status || "sent",
+        lastUpdated: metrics.updatedAt,
       };
     }
 
+    // If no metrics but recipients exist
+    if (recipients.length > 0) {
+      return {
+        opens: 0,
+        clicks: 0,
+        sends: recipients.filter((r) => r.status === "sent").length,
+        total: recipients.length,
+        status: "pending",
+      };
+    }
+
+    // Default return when no data
     return {
-      messageId,
-      opens: metrics.opens,
-      clicks: metrics.clicks,
-      unsubscribes: metrics.unsubscribes,
-      status: campaign?.status || "unknown",
-      sentAt: campaign?.sentAt,
-      totalRecipients: recipients.length,
-      deliveredCount: recipients.filter(
-        (r) =>
-          r.status === "sent" || r.status === "opened" || r.status === "clicked"
-      ).length,
+      opens: 0,
+      clicks: 0,
+      sends: 0,
+      total: 0,
+      status: "pending",
     };
   } catch (error) {
-    console.error("Error fetching metrics:", error);
-    throw error;
+    console.error("Error fetching email metrics:", error);
+    return {
+      opens: 0,
+      clicks: 0,
+      sends: 0,
+      status: "error",
+    };
   }
 }

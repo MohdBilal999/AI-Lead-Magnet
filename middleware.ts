@@ -9,20 +9,22 @@ export default authMiddleware({
     "/api/webhooks/stripe",
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
+    "/images/(.*)", // Allow public access to images
   ],
   ignoredRoutes: [
-    "/_next/(.*)", // ✅ Corrected pattern for Next.js assets
-    "/static/(.*)", // ✅ Ignores Next.js static files (if applicable)
+    "/_next/(.*)",
+    "/static/(.*)",
     "/favicon.ico",
     "/manifest.json",
+    "/images/(.*)", // Ignore image routes from auth check
   ],
 });
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json).*)", // ✅ Excludes static assets
-    "/api/:path*", // ✅ Matches all API routes
-    "/dashboard/:path*", // ✅ Matches dashboard routes
-    "/(api|trpc)(.*)", // ✅ Matches API and TRPC routes
+    "/((?!_next/static|_next/image|images|favicon.ico).*)",
+    "/api/:path*",
+    "/dashboard/:path*",
+    "/(api|trpc)(.*)",
   ],
 };

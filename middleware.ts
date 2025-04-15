@@ -5,7 +5,6 @@ export const runtime = "nodejs";
 export default authMiddleware({
   publicRoutes: [
     "/",
-    "/page",
     "/api/account",
     "/api/lead-magnet",
     "/api/webhooks/stripe",
@@ -22,9 +21,8 @@ export default authMiddleware({
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json).*)", // ✅ Excludes static assets
-    "/api/:path*", // ✅ Matches all API routes
-    "/dashboard/:path*", // ✅ Matches dashboard routes
-    "/(api|trpc)(.*)", // ✅ Matches API and TRPC routes
+    "/dashboard/:path*",
+    "/api/:path*",
+    "/trpc/:path*",
   ],
 };

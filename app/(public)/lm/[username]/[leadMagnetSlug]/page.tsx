@@ -3,7 +3,6 @@ import LeadMagnetNotFound from "@/components/LeadMagnetNotFound";
 import { prismadb } from "@/lib/prismadb";
 import React from "react";
 import LeadMagnetView from "./components/LeadMagnetView";
-import PageViewTracker from "./components/PageViewTracker";
 import { Metadata } from "next";
 
 interface LeadMagnetPageProps {
@@ -20,7 +19,7 @@ export async function generateMetadata({
     where: { username: params.username },
   });
 
-  let title = "ai-lead-magnet.vercel.app";
+  let title = "LeadConvert.ai";
   let description =
     "LeadConvert helps creators turn regular content into interactive AI experiences, effortlessly capturing leads, and nurturing them towards your digital products or courses.";
   let openGraphImage;
@@ -37,28 +36,29 @@ export async function generateMetadata({
       title = leadMagnet.publishedTitle;
       description = leadMagnet.publishedSubtitle;
       openGraphImage = {
-        url: `https://ai-lead-magnet.vercel.app/api/preview/${account.username}/${leadMagnet.slug}`,
-        width: 1200,
-        height: 630,
-        alt: leadMagnet.publishedTitle,
+        url: `https://image.thum.io/get/auth/${
+          process.env.SCREENSHOT_ACCESS_KEY ?? ""
+        }/width/1200/crop/700/https://www.ai-leads-convert.ai/lm/${
+          account.username
+        }/${leadMagnet.slug}`,
+        width: 4096,
+        height: 4096,
+        alt: "Lead Magnet Preview",
       };
     }
   }
 
   return {
     title,
-    description,
     openGraph: {
-      title,
-      description,
       images: openGraphImage ? [openGraphImage] : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      site: "@MohammeBilal09",
-      title,
-      description,
-      images: openGraphImage ? [openGraphImage] : undefined,
+      site: "@bhancock_ai",
+      title: title,
+      description: description,
+      images: openGraphImage,
     },
   };
 }
@@ -100,9 +100,6 @@ async function LeadMagnetPage({ params }: LeadMagnetPageProps) {
 
   return (
     <div className="ai-dotted-pattern flex w-screen flex-col justify-between p-6 md:max-h-screen min-h-screen md:flex-row md:p-8 lg:p-12">
-      {/* Add the page view tracker component */}
-      <PageViewTracker leadMagnetId={leadMagnet.id} />
-
       <LeadMagnetView leadMagnet={leadMagnet} profile={profile} />
       <div
         id="ai-chat"

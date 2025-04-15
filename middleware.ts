@@ -4,12 +4,14 @@ export const runtime = "nodejs";
 export default authMiddleware({
   publicRoutes: [
     "/",
-    "/(landing)/(.*)", // Allow all routes under landing directory
+    "/(landing)/(.*)",
     "/api/account",
     "/api/lead-magnet",
     "/api/webhooks/stripe",
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
+    "/_next/image*",
+    "/images/(.*)",
   ],
   ignoredRoutes: [
     "/_next/(.*)",
@@ -21,7 +23,7 @@ export default authMiddleware({
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|images).*)",
     "/api/:path*",
     "/dashboard/:path*",
     "/(api|trpc)(.*)",

@@ -3,22 +3,30 @@ import React from "react";
 import { HiMail, HiSparkles } from "react-icons/hi";
 import { IoShareSocialSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import Hero from "./landingPage";
-import Pricing from "./Pricing";
+import Hero from "./landingPage"
+import Pricing from "./Pricing"
 
-export default function LandingPage() {
+function LandingPage() {
   return (
-    <div className="flex flex-col items-center w-full">
-      <Hero />
-      <Features />
-      <HowItWorks />
-      <Pricing />
-      <CallToAction />
+    <div className="flex flex-col items-center">
+      <main>
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <Pricing />
+        <CallToAction />
+      </main>
     </div>
   );
 }
+
+export default LandingPage;
+
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
+
+
 
 const Features = () => {
   return (
@@ -165,6 +173,7 @@ const HowItWorksStep = ({
     </div>
   );
 };
+
 
 const CallToAction = () => {
   return (

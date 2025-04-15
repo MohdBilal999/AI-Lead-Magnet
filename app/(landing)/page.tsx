@@ -12,6 +12,8 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import Hero from "./page-assets/landingPage"
+import Pricing from "./page-assets/Pricing"
 
 function LandingPage() {
   return (
@@ -29,32 +31,6 @@ function LandingPage() {
 
 export default LandingPage;
 
-const Hero = () => {
-  return (
-    <div className="mx-4 mb-14 mt-6 flex flex-1 flex-col items-center text-center sm:mb-12 md:mb-32 md:mt-20">
-      <h1 className="max-w-5xl text-2xl font-bold sm:text-4xl md:text-6xl">
-        Unleash the Power of Your Content With{" "}
-        <span className="bg-gradient-to-r from-red-400 to-purple-600 bg-clip-text text-transparent">
-          {" "}
-          AI Lead Magnets{" "}
-        </span>
-      </h1>
-
-      <p className="sm:text-md mt-5 max-w-2xl text-sm text-gray-600  md:text-xl">
-        LeadConvert helps creators turn regular content into interactive AI
-        experiences, effortlessly capturing leads, and nurturing them towards
-        your digital products or courses.
-      </p>
-      <div className="mt-3 flex max-w-4xl flex-col flex-wrap items-center justify-around sm:w-full sm:flex-row">
-        <Link href="/lead-magnets">
-          <Button variant="default" className="md:text-xl">
-            Create Your First AI Lead Magnet
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
-};
 
 const Features = () => {
   return (
@@ -202,45 +178,6 @@ const HowItWorksStep = ({
   );
 };
 
-const Pricing = () => {
-  return (
-    <div className="bg-gradient-to-r from-purple-400 to-red-500  py-16">
-      <h2 className="text-5xl text-white font-bold text-center mb-8">
-        Pricing
-      </h2>
-      <div className="flex flex-col justify-center mx-6 space-y-6 sm:space-x-8 sm:flex-row sm:space-y-0">
-        <Card className="text-center">
-          <CardHeader>
-            <CardDescription className="text-xl">Free Plan</CardDescription>
-            <CardTitle className="text-4xl">$0/Month</CardTitle>
-          </CardHeader>
-          <CardContent className="mt-4">
-            <p className="mb-2 text-center text-gray-600">
-              Create up to 2 AI Lead Magnets
-            </p>
-            <Link href="/lead-magnets">
-              <Button variant="outline">Get Started</Button>
-            </Link>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardHeader>
-            <CardDescription className="text-xl">Paid Plan</CardDescription>
-            <CardTitle className="text-4xl">$10/Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-center text-gray-600">
-              Create Unlimited AI Lead Magnets
-            </p>
-            <Link href="/lead-magnets">
-              <Button>Get Started</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};
 
 const CallToAction = () => {
   return (

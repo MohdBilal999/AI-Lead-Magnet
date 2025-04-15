@@ -36,31 +36,29 @@ export async function generateMetadata({
     if (leadMagnet) {
       title = leadMagnet.publishedTitle;
       description = leadMagnet.publishedSubtitle;
-      // Fix the Thum.io URL string template
       openGraphImage = {
-        url: `https://image.thum.io/get/auth/${
-          process.env.SCREENSHOT_ACCESS_KEY ?? ""
-        }/width/1200/crop/700/https://ai-lead-magnet.vercel.app/lm/${
-          account.username
-        }/${leadMagnet.slug}`,
-        width: 4096,
-        height: 4096,
-        alt: "Lead Magnet Preview",
+        url: `https://ai-lead-magnet.vercel.app/api/preview/${account.username}/${leadMagnet.slug}`,
+        width: 1200,
+        height: 630,
+        alt: leadMagnet.publishedTitle,
       };
     }
   }
 
   return {
     title,
+    description,
     openGraph: {
+      title,
+      description,
       images: openGraphImage ? [openGraphImage] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       site: "@MohammeBilal09",
-      title: title,
-      description: description,
-      images: openGraphImage,
+      title,
+      description,
+      images: openGraphImage ? [openGraphImage] : undefined,
     },
   };
 }
@@ -104,7 +102,7 @@ async function LeadMagnetPage({ params }: LeadMagnetPageProps) {
     <div className="ai-dotted-pattern flex w-screen flex-col justify-between p-6 md:max-h-screen min-h-screen md:flex-row md:p-8 lg:p-12">
       {/* Add the page view tracker component */}
       <PageViewTracker leadMagnetId={leadMagnet.id} />
-      
+
       <LeadMagnetView leadMagnet={leadMagnet} profile={profile} />
       <div
         id="ai-chat"

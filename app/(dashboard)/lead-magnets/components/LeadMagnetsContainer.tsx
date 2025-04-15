@@ -11,7 +11,6 @@ import { HiOutlineSparkles } from "react-icons/hi"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
-// import LayoutWithBackground from "./with-background"
 
 // Update free limit constant
 const MAXIMUM_FREE_LEAD_MAGNETS = 2
@@ -27,21 +26,14 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
   const [upgrading, setUpgrading] = React.useState(false)
   const isActive = getPayingStatus(subscription)
   
-  // Check if user has reached or exceeded the free lead magnet limit (2)
   const reachedFreeLimit = leadMagnets.length >= MAXIMUM_FREE_LEAD_MAGNETS
   
-  // Check if user has ever had a subscription (active or cancelled)
   const hadSubscriptionEver = subscription !== null
   
-  // If user had subscription but it's not active now, they've cancelled
   const hadCancelledSubscription = hadSubscriptionEver && !isActive
   
-  // Show "Subscribe Again" if user has more than 2 lead magnets (whether they had a subscription or not)
   const shouldShowSubscribeAgain = !isActive && (hadCancelledSubscription || leadMagnets.length > MAXIMUM_FREE_LEAD_MAGNETS)
 
-  // Determine if create button should be disabled:
-  // 1. If user never subscribed and reached free limit (2 lead magnets)
-  // 2. If user had subscription but cancelled it
   const isCreateButtonDisabled = (!isActive && reachedFreeLimit) || hadCancelledSubscription
 
   const upgrade = async () => {

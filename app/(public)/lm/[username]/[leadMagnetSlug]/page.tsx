@@ -36,13 +36,9 @@ export async function generateMetadata({
       title = leadMagnet.publishedTitle;
       description = leadMagnet.publishedSubtitle;
       openGraphImage = {
-        url: `https://image.thum.io/get/auth/${
-          process.env.SCREENSHOT_ACCESS_KEY ?? ""
-        }/width/1200/crop/700/https://www.ai-leads-convert.vercel.app/lm/${
-          account.username
-        }/${leadMagnet.slug}`,
-        width: 4096,
-        height: 4096,
+        url: `https://image.thum.io/get/width/1200/crop/700/https://www.ai-leads-convert.vercel.app/lm/${account.username}/${leadMagnet.slug}`,
+        width: 1200,
+        height: 700,
         alt: "Lead Magnet Preview",
       };
     }
@@ -50,23 +46,21 @@ export async function generateMetadata({
 
   return {
     title,
+    description,
     openGraph: {
       images: openGraphImage ? [openGraphImage] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       site: "@bhancock_ai",
-      title: title,
-      description: description,
-      images: openGraphImage,
+      title,
+      description,
+      images: openGraphImage ? [openGraphImage] : undefined,
     },
-    
   };
 }
 
 async function LeadMagnetPage({ params }: LeadMagnetPageProps) {
-  console.log("params", params);
-
   if (!params.username || !params.leadMagnetSlug) {
     return <LeadMagnetNotFound returnLink="/" />;
   }

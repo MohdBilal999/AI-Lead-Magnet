@@ -1,7 +1,8 @@
 import { authMiddleware } from "@clerk/nextjs";
-export const runtime = "nodejs";
 
-
+// This example protects all routes including api/trpc routes
+// Please edit this to allow other routes to be public as needed.
+// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
 export default authMiddleware({
   publicRoutes: [
     "/",
@@ -11,18 +12,9 @@ export default authMiddleware({
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
   ],
-  ignoredRoutes: [
-    "/_next/(.*)", // ✅ Corrected pattern for Next.js assets
-    "/static/(.*)", // ✅ Ignores Next.js static files (if applicable)
-    "/favicon.ico",
-    "/manifest.json",
-  ],
+  
 });
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/api/:path*",
-    "/trpc/:path*",
-  ],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };

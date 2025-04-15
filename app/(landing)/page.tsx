@@ -1,19 +1,24 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 import { HiMail, HiSparkles } from "react-icons/hi";
 import { IoShareSocialSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa";
-import Hero from "./page-assets/landingPage"
-import Pricing from "./page-assets/Pricing"
-import Features from "./page-assets/Features"
-
+import {
+  Card,
+  CardHeader,
+  CardDescription,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
 
 function LandingPage() {
   return (
     <div className="flex flex-col items-center">
       <main>
         <Hero />
-        <Features/>
+        <Features />
         <HowItWorks />
         <Pricing />
         <CallToAction />
@@ -24,8 +29,77 @@ function LandingPage() {
 
 export default LandingPage;
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+const Hero = () => {
+  return (
+    <div className="mx-4 mb-14 mt-6 flex flex-1 flex-col items-center text-center sm:mb-12 md:mb-32 md:mt-20">
+      <h1 className="max-w-5xl text-2xl font-bold sm:text-4xl md:text-6xl">
+        Unleash the Power of Your Content With{" "}
+        <span className="bg-gradient-to-r from-red-400 to-purple-600 bg-clip-text text-transparent">
+          {" "}
+          AI Lead Magnets{" "}
+        </span>
+      </h1>
+
+      <p className="sm:text-md mt-5 max-w-2xl text-sm text-gray-600  md:text-xl">
+        LeadConvert helps creators turn regular content into interactive AI
+        experiences, effortlessly capturing leads, and nurturing them towards
+        your digital products or courses.
+      </p>
+      <div className="mt-3 flex max-w-4xl flex-col flex-wrap items-center justify-around sm:w-full sm:flex-row">
+        <Link href="/lead-magnets">
+          <Button variant="default" className="md:text-xl">
+            Create Your First AI Lead Magnet
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+const Features = () => {
+  return (
+    <div className="relative z-10 flex flex-col justify-center space-y-10 px-8 pb-12 pt-8 sm:py-12 md:flex-row md:space-x-10 md:space-y-0 md:py-20 lg:py-28 2xl:py-32">
+      <div className="absolute inset-0 z-0 -skew-y-6 transform bg-gradient-to-r from-purple-100 to-purple-50" />
+      <div className="relative z-10 flex flex-col justify-center space-y-10 md:flex-row md:space-x-10 md:space-y-0">
+        <FeatureCard
+          title="Unique AI Lead Magnets"
+          description="Beyond ebooks and videos, offer dynamic AI solutions that speak directly to your audience's needs."
+          icon={<HiSparkles className="h-16 w-16" />}
+        />
+        <FeatureCard
+          title="Effortless Email Capture"
+          description="Let AI chatbots do all the hard work and capture leads for you, turning interactions into opportunities effortlessly."
+          icon={<HiMail className="h-16 w-16" />}
+        />
+        <FeatureCard
+          title="Easy Integration with Social Media"
+          description="Make your posts work for you; effortlessly share interactive content and boost your lead generation."
+          icon={<IoShareSocialSharp className="h-16 w-16" />}
+        />
+      </div>
+    </div>
+  );
+};
+
+const FeatureCard = ({
+  title,
+  description,
+  icon,
+}: {
+  title: string;
+  description: string;
+  icon: JSX.Element;
+}) => {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-purple-200 bg-white p-8 text-center">
+      <div className="mb-4 rounded-full bg-purple-500 p-4 text-white">
+        {icon}
+      </div>
+      <h2 className="mt-4 text-xl font-light text-purple-500">{title}</h2>
+      <p className="mt-2 italic text-gray-600">{description}</p>
+    </div>
+  );
+};
 
 const HowItWorks = () => {
   return (
@@ -128,6 +202,45 @@ const HowItWorksStep = ({
   );
 };
 
+const Pricing = () => {
+  return (
+    <div className="bg-gradient-to-r from-purple-400 to-red-500  py-16">
+      <h2 className="text-5xl text-white font-bold text-center mb-8">
+        Pricing
+      </h2>
+      <div className="flex flex-col justify-center mx-6 space-y-6 sm:space-x-8 sm:flex-row sm:space-y-0">
+        <Card className="text-center">
+          <CardHeader>
+            <CardDescription className="text-xl">Free Plan</CardDescription>
+            <CardTitle className="text-4xl">$0/Month</CardTitle>
+          </CardHeader>
+          <CardContent className="mt-4">
+            <p className="mb-2 text-center text-gray-600">
+              Create up to 2 AI Lead Magnets
+            </p>
+            <Link href="/lead-magnets">
+              <Button variant="outline">Get Started</Button>
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className="text-center">
+          <CardHeader>
+            <CardDescription className="text-xl">Paid Plan</CardDescription>
+            <CardTitle className="text-4xl">$10/Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-center text-gray-600">
+              Create Unlimited AI Lead Magnets
+            </p>
+            <Link href="/lead-magnets">
+              <Button>Get Started</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
 
 const CallToAction = () => {
   return (

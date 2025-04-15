@@ -1,21 +1,21 @@
-import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
+import React from "react";
+import LandingPageNavbar from "./components/LandingPageNavbar";
+import LandingPageFooter from "./components/LandingPageFooter";
 
-export const metadata: Metadata = {
-  title: "LeadConvert - AI Lead Generation Platform",
-  description: "Transform your content into interactive AI experiences",
-};
-
-export default function RootLayout({
-  children,
+function LandingLayout({
+  children, // will be a page or nested layout
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <div className="min-h-screen bg-white">
-        <div className="flex min-h-screen flex-col">{children}</div>
-      </div>
-    </ClerkProvider>
+    <section className="flex min-h-screen flex-col overflow-x-clip">
+      <LandingPageNavbar />
+
+      <div className="flex-grow">{children}</div>
+
+      <LandingPageFooter />
+    </section>
   );
 }
+
+export default LandingLayout;

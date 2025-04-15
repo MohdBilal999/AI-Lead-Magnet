@@ -1,30 +1,31 @@
 import { authMiddleware } from "@clerk/nextjs";
 export const runtime = "nodejs";
 
+
 export default authMiddleware({
   publicRoutes: [
     "/",
+    "/landingPage",
+    "/Pricing",
     "/api/account",
     "/api/lead-magnet",
     "/api/webhooks/stripe",
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
-    "/images/(.*)", // Allow public access to images
   ],
   ignoredRoutes: [
-    "/_next/(.*)",
-    "/static/(.*)",
+    "/_next/(.*)", // ✅ Corrected pattern for Next.js assets
+    "/static/(.*)", // ✅ Ignores Next.js static files (if applicable)
     "/favicon.ico",
     "/manifest.json",
-    "/images/(.*)", // Ignore image routes from auth check
   ],
 });
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|images|favicon.ico).*)",
-    "/api/:path*",
-    "/dashboard/:path*",
-    "/(api|trpc)(.*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json).*)", // ✅ Excludes static assets
+    "/api/:path*", // ✅ Matches all API routes
+    "/dashboard/:path*", // ✅ Matches dashboard routes
+    "/(api|trpc)(.*)", // ✅ Matches API and TRPC routes
   ],
 };

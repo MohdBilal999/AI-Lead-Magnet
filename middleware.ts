@@ -4,7 +4,6 @@ export const runtime = "nodejs";
 export default authMiddleware({
   publicRoutes: [
     "/",
-    "/app/(landing)/page",
     "/api/account",
     "/api/lead-magnet",
     "/api/webhooks/stripe",

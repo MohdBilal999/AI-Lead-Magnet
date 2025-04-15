@@ -7,12 +7,13 @@ import Hero from "./page-assets/landingPage"
 import Pricing from "./page-assets/Pricing"
 import Features from "./page-assets/Features"
 
+
 function LandingPage() {
   return (
     <div className="flex flex-col items-center">
       <main>
         <Hero />
-        <Features />
+        <Features/>
         <HowItWorks />
         <Pricing />
         <CallToAction />

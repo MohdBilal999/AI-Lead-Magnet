@@ -12,7 +12,8 @@ export default authMiddleware({
     "/api/webhooks/stripe",
     "/api/lead-magnet/publish",
     "/api/lead-magnet/unpublish",
-    "/api/email/webhook", // ✅ Add this line
+    "/api/email/webhook",
+    "/lm/:username/:leadMagnetSlug", // Add public access to lead magnet templates
   ],
 });
 

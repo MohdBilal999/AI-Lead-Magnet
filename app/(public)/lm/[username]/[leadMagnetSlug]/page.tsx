@@ -52,7 +52,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      site: "@bhancock_ai",
+      site: "@MohammedBilal09",
       title,
       description,
       images: openGraphImage ? [openGraphImage] : undefined,
@@ -81,6 +81,7 @@ async function LeadMagnetPage({ params }: LeadMagnetPageProps) {
     where: {
       userId: account.userId,
       slug: params.leadMagnetSlug,
+      status: "published",
     },
   });
 

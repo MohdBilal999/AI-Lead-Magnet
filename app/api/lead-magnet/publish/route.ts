@@ -1,6 +1,5 @@
 import { prismadb } from "@/lib/prismadb";
 import { slugifyLeadMagnet } from "@/lib/utils";
-import { currentUser } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,18 +8,6 @@ const leadMagnetPublishRequest = z.object({
 });
 
 export async function POST(request: Request) {
-  const user = await currentUser();
-
-  if (!user || !user.id) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = user.id;
-
-  if (!userId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
   const requestBody = await request.json();
   const parsedPublishedRequest =
     leadMagnetPublishRequest.safeParse(requestBody);

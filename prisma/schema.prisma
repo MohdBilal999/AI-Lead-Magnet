@@ -108,11 +108,11 @@ model EmailRecipient {
   id          String   @id @default(cuid())
   campaignId  String
   leadId      String
-  status      String   @default("pending") // pending, sent, delivered, opened, clicked, bounced
+  status      String   @default("pending") // Will be updated to "sent" when metrics.sends >= 1
   sentAt      DateTime?
   openedAt    DateTime?
   clickedAt   DateTime?
-  senderName  String?  // Add sender name
+  senderName  String?
   
   // Relations
   campaign    EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)

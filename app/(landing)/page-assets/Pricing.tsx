@@ -110,8 +110,8 @@ export const Pricing = () => {
               <CardContent className="pt-4">
                 <div className="space-y-4">
                   <PricingFeature included={true} text="Unlimited AI Lead Magnets" />
-                  <PricingFeature included={true} text="Convert leads into customers" />
-                  <PricingFeature included={true} text="Capture more Leads" />
+                  <PricingFeature included={true} text="Send Unlimited Email" />
+                  <PricingFeature included={true} text="High Conversion" />
                   <PricingFeature included={true} text="Cancel Subscription anytime" />
                 </div>
               </CardContent>

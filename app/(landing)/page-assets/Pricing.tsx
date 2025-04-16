@@ -84,7 +84,7 @@ export const Pricing = () => {
               </CardContent>
               <CardFooter className="pt-4">
                 <Link href="/lead-magnets" className="w-full">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="default" className="w-full">
                     Get Started
                   </Button>
                 </Link>

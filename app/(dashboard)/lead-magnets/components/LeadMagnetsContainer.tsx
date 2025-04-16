@@ -11,7 +11,6 @@ import { HiOutlineSparkles } from "react-icons/hi"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
-// import LayoutWithBackground from "./with-background"
 
 // Update free limit constant
 const MAXIMUM_FREE_LEAD_MAGNETS = 2
@@ -85,7 +84,7 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
                 <p className="text-gray-700 mb-4 text-center">
                   {hadCancelledSubscription 
                     ? "Your subscription has been cancelled. Reactivate to continue creating lead magnets."
-                    : "You've exceeded the free limit. Subscribe to continue creating lead magnets."}
+                    : "Your subscription has ended. Reactivate now to resume creating lead magnets and capturing leads."}
                 </p>
               ) : (
                 <p className="font-semibold text-gray-700 mb-4 text-center">
@@ -93,7 +92,7 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
                 </p>
               )}
               <Button 
-                variant="ghost" 
+                variant="default" 
                 onClick={upgrade} 
                 className="w-40 mx-auto"
               >

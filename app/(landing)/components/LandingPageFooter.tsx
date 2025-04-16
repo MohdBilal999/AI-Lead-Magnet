@@ -9,7 +9,7 @@ function LandingPageFooter() {
           href="mailto:businesswithbilal2003@gmail.com"
           className="text-purple-500 hover:underline"
         >
-          Mohammed Bilal &copy; 
+          Mohammed Bilal; 
         </a>
       </span>
     </div>

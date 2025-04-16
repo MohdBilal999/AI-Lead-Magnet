@@ -29,12 +29,25 @@ export async function POST(request: Request) {
     );
   }
 
+  // Create the lead
   await prismadb.lead.create({
     data: {
       email: parsedRequest.data.email,
       name: parsedRequest.data.name,
       leadMagnetId: parsedRequest.data.leadMagnetId,
       userId: leadMagnet.userId,
+    },
+  });
+
+  // Increment the pageView count
+  await prismadb.leadMagnet.update({
+    where: {
+      id: parsedRequest.data.leadMagnetId,
+    },
+    data: {
+      pageViews: {
+        increment: 1,
+      },
     },
   });
 

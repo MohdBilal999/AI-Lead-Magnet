@@ -3,58 +3,73 @@ import { stripe } from "@/utils/stripe";
 import { currentUser } from "@clerk/nextjs";
 import { NextResponse, NextRequest } from "next/server";
 
+// Currency conversion from INR to other currencies
 const exchangeRates = {
-  USD: 0.012, // 1 INR = 0.012 USD
+  USD: 0.012,
   EUR: 0.011,
   GBP: 0.0095,
   AUD: 0.018,
-  INR: 1, // Default INR
+  INR: 1,
 };
 
 export async function GET(req: NextRequest) {
   try {
     const user = await currentUser();
-    if (!user) return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
-
-    // Fetch user's location
-    let currency = "INR"; // Default INR
-    let priceInLocalCurrency = 250000; // ₹2500 in minor units (paise)
-
-    try {
-      const ip = req.headers.get("x-forwarded-for") || req.ip;
-      const res = await fetch(`https://ipapi.co/${ip}/json/`);
-      const data: { country_code?: string } = await res.json();
-      const country = (data.country_code || "IN") as keyof typeof exchangeRates;
-
-      if (exchangeRates[country]) {
-        currency = country;
-        priceInLocalCurrency = Math.round(2500 * exchangeRates[country] * 100); // Convert and set price
-      }
-    } catch (error) {
-      console.error("Failed to get location, using default INR pricing.");
+    if (!user) {
+      return NextResponse.json({ message: "Unauthenticated" }, { status: 401 });
     }
 
+    // Default currency
+    let currency = "INR";
+    let priceInLocalCurrency = 250000; // ₹2500 in paise
+
+    try {
+      const ip = req.headers.get("x-forwarded-for") || "103.21.76.123"; // fallback IP
+      const res = await fetch(`https://ipapi.co/${ip}/json/`);
+      const data = await res.json();
+      const countryCode = data.country_code;
+
+      // You can customize this mapping if needed
+      const currencyMap: Record<string, keyof typeof exchangeRates> = {
+        US: "USD",
+        GB: "GBP",
+        AU: "AUD",
+        IN: "INR",
+        EU: "EUR",
+      };
+
+      const localCurrency = currencyMap[countryCode] || "INR";
+
+      if (exchangeRates[localCurrency]) {
+        currency = localCurrency;
+        priceInLocalCurrency = Math.round(2500 * exchangeRates[localCurrency] * 100);
+      }
+    } catch (err) {
+      console.error("Geolocation failed:", err);
+    }
+
+    // Check if subscription already exists
     const userSubscription = await prismadb.subscription.findUnique({
       where: { userId: user.id },
     });
 
-    if (userSubscription && userSubscription.stripeCustomerId) {
-      const stripeSession = await stripe.billingPortal.sessions.create({
+    if (userSubscription?.stripeCustomerId) {
+      const portalSession = await stripe.billingPortal.sessions.create({
         customer: userSubscription.stripeCustomerId,
         return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
       });
 
-      return NextResponse.json({ url: stripeSession.url }, { status: 200 });
+      return NextResponse.json({ url: portalSession.url }, { status: 200 });
     }
 
-    // Create Stripe Checkout Session
-    const stripeSession = await stripe.checkout.sessions.create({
+    // Create a new Stripe Checkout session
+    const checkoutSession = await stripe.checkout.sessions.create({
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/account`,
       payment_method_types: ["card"],
       mode: "subscription",
       billing_address_collection: "auto",
-      customer_email: user.emailAddresses[0].emailAddress,
+      customer_email: user.emailAddresses[0]?.emailAddress,
       line_items: [
         {
           price_data: {
@@ -64,9 +79,7 @@ export async function GET(req: NextRequest) {
               description: "Unlimited AI Lead Magnets",
             },
             unit_amount: priceInLocalCurrency,
-            recurring: {
-              interval: "month",
-            },
+            recurring: { interval: "month" },
           },
           quantity: 1,
         },
@@ -74,9 +87,10 @@ export async function GET(req: NextRequest) {
       metadata: { userId: user.id },
     });
 
-    return NextResponse.json({ url: stripeSession.url }, { status: 200 });
-  } catch (e) {
-    console.error("[STRIPE ERROR]", e);
+    return NextResponse.json({ url: checkoutSession.url }, { status: 200 });
+
+  } catch (error) {
+    console.error("[STRIPE ERROR]", error);
     return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }

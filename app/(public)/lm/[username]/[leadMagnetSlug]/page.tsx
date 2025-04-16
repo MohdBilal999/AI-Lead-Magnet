@@ -36,10 +36,10 @@ export async function generateMetadata({
       title = leadMagnet.publishedTitle;
       description = leadMagnet.publishedSubtitle;
       openGraphImage = {
-        url: `https://image.thum.io/get/width/1200/crop/700/https://www.ai-leads-convert.vercel.app/lm/${account.username}/${leadMagnet.slug}`,
+        url: `https://image.thum.io/get/width/1200/crop/700/viewportWidth/1200/viewportHeight/700/fullPage/true/https://lead-convert.vercel.app/lm/${account.username}/${leadMagnet.slug}`,
         width: 1200,
         height: 700,
-        alt: "Lead Magnet Preview",
+        alt: leadMagnet.publishedTitle,
       };
     }
   }
@@ -48,7 +48,10 @@ export async function generateMetadata({
     title,
     description,
     openGraph: {
+      title,
+      description,
       images: openGraphImage ? [openGraphImage] : undefined,
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",

@@ -93,7 +93,7 @@ function LeadMagnetsContainer({ leadMagnets, leads, subscription }: LeadMagnetsC
                 </p>
               )}
               <Button 
-                variant="ai" 
+                variant="ghost" 
                 onClick={upgrade} 
                 className="w-40 mx-auto"
               >

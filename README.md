@@ -1,36 +1,11 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# AI-Lead-Magnet
 
-## Getting Started
+AI-Lead-Magnet is a web application built with [Next.js](https://nextjs.org/) designed to help businesses generate and manage leads more efficiently using artificial intelligence. The platform leverages modern web frameworks and AI tools to streamline the lead capture and nurturing process, making it easier for teams to grow their customer base.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **AI-Powered Lead Generation:** Automatically identify and qualify high-value leads based on user input and external data sources.
+- **Customizable Lead Capture Forms:** Easily create and deploy forms to collect lead information from landing pages or campaigns.
+- **Automated Follow-ups:** Use AI to send timely, personalized follow-up messages to nurture leads.
+- **Analytics Dashboard:** Track the performance of lead generation campaigns, view conversion rates, and analyze user behavior.
+- **Easy Integration:** Connect with popular CRM
